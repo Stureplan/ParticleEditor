@@ -9,7 +9,7 @@ using namespace glm;
 class Camera
 {
 public:
-	void Initialize ();
+	void Initialize (glm::vec3, glm::vec3);
 	void UpdateView	();
 	void SetPos		(glm::vec3);
 	void SetDir		(glm::vec3);

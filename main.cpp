@@ -58,9 +58,10 @@ void SetFPS(int fps)
 	GL_FPS = fps;
 }
 
-void InitializeMatrices ()
+void InitializeCamera ()
 {
-	camera.Initialize ();
+	camera.Initialize (glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	View	   = camera.GetView ();
 	Projection = camera.GetProj ();
 }
 
@@ -228,6 +229,10 @@ void Update (double deltaTime)
 		pos.z += MoveSpeed * deltaTime;
 	}
 
+
+
+
+
 	glm::vec3 dir = pos;
 	dir.z = dir.z + 1.0f;
 	dir.y = dir.y - 0.5f;
@@ -243,11 +248,11 @@ void Render()
 	glEnable (GL_DEPTH_TEST);
 	glDepthFunc (GL_LESS);
 
+	View = camera.GetView ();
+
 	// ----------- This is done for each Object* in the scene -----------
 	Model = glm::mat4 (1.0f);			//Model must be reset for each object and each frame
 	Model = cube->GetModel ();			//match Model with object Model
-	View = camera.GetView ();
-	
 
 	MVP	  = Projection * View * Model;	//have to mult with PVM to get camera correct view
 	glUniform1f (TexID, TEXANIM);
@@ -276,7 +281,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		unsigned int start = clock();
 
 		//my functions
-		InitializeMatrices ();
+		InitializeCamera ();
 		CreateShaders();
 		CreateObjects();
 		

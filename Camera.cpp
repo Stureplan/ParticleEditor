@@ -1,20 +1,20 @@
 #include "camera.h"
 
-void Camera::Initialize ()
+void Camera::Initialize (glm::vec3 pos, glm::vec3 dir)
 {
 	View = glm::lookAt
 	(
-		glm::vec3 (0, 4.0f, -8.0f),	//pos
-		glm::vec3 (0, 0, 1),		//at
-		glm::vec3 (0, 1, 0)			//up
+		pos,					//pos
+		dir,					//at
+		glm::vec3 (0, 1, 0)		//up
 	);
 
 	Projection = glm::perspective
 	(
-		glm::radians (45.0f),		//FOV
-		16.0f / 9.0f,				//aspect ratio
-		0.1f,						//near
-		100.0f						//far
+		glm::radians (45.0f),	//FOV
+		16.0f / 9.0f,			//aspect ratio
+		0.1f,					//near
+		100.0f					//far
 	);
 }
 
