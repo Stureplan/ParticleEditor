@@ -13,6 +13,7 @@
 #include <glfw3.h>
 
 //Custom classes
+#include "camera.h"
 #include "object.h"
 
 using namespace glm;
@@ -33,7 +34,7 @@ GLuint TexID;
 
 //Matrices
 glm::mat4 Model		 = glm::mat4(1.0f);
-glm::mat4 View		 = glm::mat4(1.0f);
+glm::mat4 View		 = glm::mat4 (1.0f);
 glm::mat4 Projection = glm::mat4(1.0f);
 glm::mat4 MVP		 = glm::mat4(1.0f);		//model * view * projection
 
@@ -43,14 +44,13 @@ float TEXANIM = 0.0f;
 
 //World objects
 Object* cube;
+Camera camera;
 
 //Input variables
 POINT p;
 float mousespeed = 0.005f;
 float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
-
-glm::vec3 CameraPos(0, 4, -8);
 float MoveSpeed = 5.0f;
 
 void SetFPS(int fps)
@@ -60,14 +60,8 @@ void SetFPS(int fps)
 
 void InitializeMatrices ()
 {
-	
-	View = glm::lookAt
-		(
-			CameraPos,				//pos
-			glm::vec3 (0, 0, 0),	//at
-			glm::vec3 (0, 1, 0)		//up
-		);
-	Projection = glm::perspective (glm::radians (45.0f), 16.0f / 9.0f, 0.1f, 100.0f);
+	camera.Initialize ();
+	Projection = camera.GetProj ();
 }
 
 void CreateShaders()
@@ -223,27 +217,24 @@ void Update (double deltaTime)
 	cube->Update();								//updates model matrix (T * R * S compute)
 	TEXANIM = TEXANIM + 0.05f * deltaTime;		//update what i add to the UVs in shader
 
-
+	glm::vec3 pos = camera.GetPos ();
 	if (WM_KEYDOWN && GetAsyncKeyState(0x53))
 	{
-		CameraPos.z -= MoveSpeed * deltaTime;
+		pos.z -= MoveSpeed * deltaTime;
 	}
 
 	if (WM_KEYDOWN && GetAsyncKeyState(0x57))
 	{
-		CameraPos.z += MoveSpeed * deltaTime;
+		pos.z += MoveSpeed * deltaTime;
 	}
 
-	glm::vec3 CameraDir = CameraPos;
-	CameraDir.z = CameraDir.z + 1.0f;
-	CameraDir.y = CameraDir.y - 0.5f;
+	glm::vec3 dir = pos;
+	dir.z = dir.z + 1.0f;
+	dir.y = dir.y - 0.5f;
 
-	View = glm::lookAt
-	(
-		CameraPos,				//pos
-		CameraDir,				//at
-		glm::vec3(0, 1, 0)		//up
-	);
+	camera.SetPos (pos);
+	camera.SetDir (dir);
+	camera.UpdateView ();
 }
 
 void Render()
@@ -255,6 +246,9 @@ void Render()
 	// ----------- This is done for each Object* in the scene -----------
 	Model = glm::mat4 (1.0f);			//Model must be reset for each object and each frame
 	Model = cube->GetModel ();			//match Model with object Model
+	View = camera.GetView ();
+	
+
 	MVP	  = Projection * View * Model;	//have to mult with PVM to get camera correct view
 	glUniform1f (TexID, TEXANIM);
 	glUniformMatrix4fv (MatrixID, 1, GL_FALSE, &MVP[0][0]);	//update "MVP" shader var to MVP matrix
