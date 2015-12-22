@@ -81,7 +81,7 @@ void Object::Update ()
 void Object::Render ()
 {
 	glUseProgram (m_shader);
-
+	
 	glEnableVertexAttribArray (vtxpos);
 	glBindBuffer (GL_ARRAY_BUFFER, vertexbuffer);
 	glVertexAttribPointer (vtxpos, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
@@ -95,7 +95,7 @@ void Object::Render ()
 	glVertexAttribPointer (vtxuv, 2, GL_FLOAT, GL_FALSE,  0, (void*) 0);
 
 	//each individual object renders itself
-	glDrawArrays (GL_TRIANGLES, 0, m_vertices.size ());
+	glDrawArrays (GL_LINE_STRIP, 0, m_vertices.size ());
 
 	glDisableVertexAttribArray (vtxpos);
 	glDisableVertexAttribArray (vtxcol);
@@ -114,12 +114,17 @@ void Object::Rotate (glm::vec3 rotation)
 
 void Object::Rescale (glm::vec3 scale)
 {
-	this->m_scale = scale;
+	this->m_scale = m_scale + scale;
 }
 
 glm::mat4 Object::GetModel ()
 {
 	return this->Model;
+}
+
+glm::vec3 Object::GetScale()
+{
+	return this->m_scale;
 }
 
 bool Object::LoadOBJ (const char* filepath)

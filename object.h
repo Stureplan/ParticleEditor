@@ -39,6 +39,7 @@ public:
 	void Rotate		(glm::vec3);
 	void Rescale	(glm::vec3);
 	glm::mat4 GetModel();
+	glm::vec3 GetScale();
 
 private:
 	bool LoadOBJ (const char*);

@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <ctime>
 #include <sstream>
+#include <iomanip>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <gl/glew.h>
@@ -15,6 +16,7 @@
 //Custom classes
 #include "camera.h"
 #include "object.h"
+#include "Shaders.h"
 
 using namespace glm;
 
@@ -28,19 +30,20 @@ HGLRC CreateOpenGLContext(HWND wndHandle);
 HWND windowReference;
 
 //Pointer variables
-GLuint shader = 0;
+GLuint program = 0;
 GLuint MatrixID;	//the in-shader matrix variable (think cbuffer)
 GLuint TexID;
 
 //Matrices
 glm::mat4 Model		 = glm::mat4(1.0f);
-glm::mat4 View		 = glm::mat4 (1.0f);
+glm::mat4 View		 = glm::mat4(1.0f);
 glm::mat4 Projection = glm::mat4(1.0f);
 glm::mat4 MVP		 = glm::mat4(1.0f);		//model * view * projection
 
 //Variables
 int GL_FPS = 0;
-float TEXANIM = 0.0f;
+float GL_SCALE = 0;
+bool keyDown;
 
 //World objects
 Object* cube;
@@ -53,6 +56,7 @@ float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
 float MoveSpeed = 5.0f;
 
+
 void SetFPS(int fps)
 {
 	GL_FPS = fps;
@@ -60,114 +64,22 @@ void SetFPS(int fps)
 
 void InitializeCamera ()
 {
-	camera.Initialize (glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	camera.Initialize (glm::vec3(0.0f, 1.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	View	   = camera.GetView ();
 	Projection = camera.GetProj ();
 }
 
 void CreateShaders()
 {
-	const char* vertex_shader = R"(
-		#version 400
-		layout(location = 0) in vec3 vertex_position;
-		layout(location = 1) in vec3 vertex_color;
-		layout(location = 2) in vec2 vertex_uv;
-		
-		out vec3 color;
-		out vec2 uv;
-		out vec2 uv2;
-
-		uniform mat4 MVP;
-		uniform float anim;
-		
-		void main () 
-		{
-			gl_Position = MVP * vec4(vertex_position, 1);
-			color = vertex_color;
-
-			//Create two UV sets to be able to animate the same texture twice
-			//in different directions
-			uv = vertex_uv;
-			uv2 = vertex_uv;
-
-			//Animate both textures based on a uniform
-			uv.x = uv.x + anim/10;
-			uv.y = uv.y + anim/2;
-			uv2.x = uv2.x - anim/2;
-		}
-	)";
-
-	const char* fragment_shader = R"(
-		#version 400
-		in vec3 color;
-		in vec2 uv;
-		in vec2 uv2;
-
-		uniform sampler2D tex;
-
-		out vec4 fragment_color;
-		void main () 
-		{
-			fragment_color = texture(tex, uv2);
-
-			float distance = gl_FragCoord.z / gl_FragCoord.w;
-			float newdistance;
-			float near = 7.0f;
-			float far = 10.0f;
-
-			//Make the distance a manageable value (colors range from 0 to 1, so we want this close to that range)
-			newdistance = distance / 25;
-
-			//If the color value is  66% or more bright
-			if ((fragment_color.x + fragment_color.y + fragment_color.z) > 2.0f)
-			{				
-				//fragment_color = fragment_color + newdistance;
-
-				//Only a certain depth range gets fake specular. 0.4 -> 0.6
-				if (newdistance < 0.5f && newdistance > 0.3f)
-				{
-					//Add fake specular
-					fragment_color += newdistance * 1.3f;
-				}
-			}
-
-
-			//Sample the same texture again with opposite animated UV coords,
-			//this creates a "double layer" effect
-			fragment_color = fragment_color * texture(tex, uv);
-
-			//Restrict darkness and light. More "newdistance" = more darkness.			
-			newdistance = clamp(newdistance, 0.0f, 0.45f);
-			
-			//Darken based on distance. Further back = darker
-			fragment_color -= newdistance * 1.5f;
-
-
-		}
-	)";
-
-	//create vertex shader
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vs, 1, &vertex_shader, nullptr);
-	glCompileShader(vs);
-
-	//create fragment shader
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fs, 1, &fragment_shader, nullptr);
-	glCompileShader(fs);
-
-	//link shader program (connect vs and ps)
-	shader = glCreateProgram();
-	glAttachShader(shader, fs);
-	glAttachShader(shader, vs);
-	glLinkProgram(shader);
+	//Create and load shaders (GS IS DISABLED!)
+	program = LoadShaders("vertex.glsl", "geometry.glsl", "fragment.glsl");
 	
-	TexID	 = glGetUniformLocation (shader, "anim");
-	MatrixID = glGetUniformLocation (shader, "MVP");
+	TexID	 = glGetUniformLocation (program, "anim");
+	MatrixID = glGetUniformLocation (program, "MVP");
 	glClearColor (0.2f, 0.2f, 0.2f, 1.0f);
 }
 
-void CompileShaderError(GLuint* shader)
+void CompileShaderError(GLuint* _shader)
 {
 	GLint success = 0;
 }
@@ -175,11 +87,11 @@ void CompileShaderError(GLuint* shader)
 void CreateObjects()
 {
 	TextureData monkey;
-	monkey.texturename = "Data/water.png";
-	monkey.width = 1024;
-	monkey.height = 1024;
+	monkey.texturename = "Data/wireframe.png";
+	monkey.width = 32;
+	monkey.height = 32;
 
-	cube = new Object ("Data/water.obj", &monkey, glm::vec3 (0.0f, 0.0f, 0.0f), shader);
+	cube = new Object ("Data/cube2.obj", &monkey, glm::vec3 (0.0f, 0.0f, 0.0f), program);
 }
 
 void SetViewport(HWND hwnd)
@@ -216,22 +128,35 @@ void Update (double deltaTime)
 {
 	cube->Rotate (GetInputDir ());				//rotates to match direction
 	cube->Update();								//updates model matrix (T * R * S compute)
-	TEXANIM = TEXANIM + 0.05f * deltaTime;		//update what i add to the UVs in shader
 
+	glm::vec3 scale = cube->GetScale();
 	glm::vec3 pos = camera.GetPos ();
-	if (WM_KEYDOWN && GetAsyncKeyState(0x53))
+
+	if (GetAsyncKeyState(0x53) & 0x8000)
 	{
-		pos.z -= MoveSpeed * deltaTime;
+		//pos.z -= MoveSpeed * deltaTime;
+		if (scale.x > 1.0f && keyDown == false)
+		{
+			cube->Rescale(glm::vec3(-0.1f, -0.1f, -0.1f));
+			keyDown = true;
+		}
 	}
 
-	if (WM_KEYDOWN && GetAsyncKeyState(0x57))
+	else if (GetAsyncKeyState(0x57) & 0x8000)
 	{
-		pos.z += MoveSpeed * deltaTime;
+		//pos.z += MoveSpeed * deltaTime;
+		if (scale.x < 5.0f && keyDown == false)
+		{
+			cube->Rescale(glm::vec3(0.1f, 0.1f, 0.1f));
+			keyDown = true;
+		}
+	}
+	else
+	{
+		keyDown = false;
 	}
 
-
-
-
+	GL_SCALE = scale.x;
 
 	glm::vec3 dir = pos;
 	dir.z = dir.z + 1.0f;
@@ -255,11 +180,9 @@ void Render()
 	Model = cube->GetModel ();			//match Model with object Model
 
 	MVP	  = Projection * View * Model;	//have to mult with PVM to get camera correct view
-	glUniform1f (TexID, TEXANIM);
 	glUniformMatrix4fv (MatrixID, 1, GL_FALSE, &MVP[0][0]);	//update "MVP" shader var to MVP matrix
 	cube->Render();						//renders cube buffers with shader program set in Initialize()
 	// ------------------------------------------------------------------
-
 }
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
@@ -308,7 +231,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 				fps++;
 				int WindowFPS = (int)1 / dt;
 				std::wstringstream wss;
-				wss << "FPS: " << GL_FPS;
+				
+				wss << std::setprecision(3) << "FPS: " << GL_FPS << " Scale: " << GL_SCALE;
 				
 				SetWindowText(wndHandle, wss.str().c_str());
 

@@ -1,20 +1,38 @@
-﻿Build started 2015-11-29 12:16:43.
-     1>Project "E:\OGL\Tr0n3k\OpenGL\Demo.vcxproj" on node 2 (Build target(s)).
+﻿Build started 2015-12-22 17:29:54.
+     1>Project "C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Demo.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"E:\OGL\Tr0n3k\OpenGL\glew-1.11.0\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"E:\OGL\Tr0n3k\OpenGL\glew-1.11.0\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Camera.cpp loader.cpp main.cpp object.cpp
+         object.cpp
+     1>c:\users\linus\documents\particle renderer\opengl_particles\object.cpp(139): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(211) : see declaration of 'fopen'
+     1>c:\users\linus\documents\particle renderer\opengl_particles\object.cpp(151): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(230) : see declaration of 'fscanf'
+     1>c:\users\linus\documents\particle renderer\opengl_particles\object.cpp(160): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(230) : see declaration of 'fscanf'
+     1>c:\users\linus\documents\particle renderer\opengl_particles\object.cpp(166): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(230) : see declaration of 'fscanf'
+     1>c:\users\linus\documents\particle renderer\opengl_particles\object.cpp(172): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(230) : see declaration of 'fscanf'
+     1>c:\users\linus\documents\particle renderer\opengl_particles\object.cpp(182): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\stdio.h(230) : see declaration of 'fscanf'
          main.cpp
-     1>e:\ogl\tr0n3k\opengl\main.cpp(224): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(229): warning C4244: '-=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(234): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(307): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(310): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+     1>c:\users\linus\documents\particle renderer\opengl_particles\main.cpp(229): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\linus\documents\particle renderer\opengl_particles\main.cpp(232): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+         loader.cpp
+         Camera.cpp
+         Generating Code...
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\OGL\Tr0n3k\OpenGL\Debug\Demo.exe" /INCREMENTAL /NOLOGO /LIBPATH:"E:\OGL\Tr0n3k\OpenGL\glew-1.11.0\lib\Release\Win32" opengl32.lib SOIL.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:MSVCRT /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\OGL\Tr0n3k\OpenGL\Debug\Demo.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\OGL\Tr0n3k\OpenGL\Debug\Demo.lib" /MACHINE:X86 Debug\loader.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\Demo.exe" /INCREMENTAL /NOLOGO /LIBPATH:"E:\OGL\Tr0n3k\OpenGL\glew-1.11.0\lib\Release\Win32" opengl32.lib SOIL.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:MSVCRT /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\Demo.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\Demo.lib" /MACHINE:X86 Debug\Camera.obj
+         Debug\loader.obj
          Debug\main.obj
          Debug\object.obj
-         Demo.vcxproj -> E:\OGL\Tr0n3k\OpenGL\Debug\Demo.exe
-     1>Done Building Project "E:\OGL\Tr0n3k\OpenGL\Demo.vcxproj" (Build target(s)).
+     1>SOIL.lib(image_DXT.obj) : warning LNK4204: 'C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>SOIL.lib(image_helper.obj) : warning LNK4204: 'C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>SOIL.lib(SOIL.obj) : warning LNK4204: 'C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>SOIL.lib(stb_image_aug.obj) : warning LNK4204: 'C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+         Demo.vcxproj -> C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Debug\Demo.exe
+     1>Done Building Project "C:\Users\Linus\Documents\Particle Renderer\OpenGL_Particles\Demo.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:05.69
+Time Elapsed 00:00:03.51
