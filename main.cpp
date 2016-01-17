@@ -72,7 +72,11 @@ float		CURRENT_ROTX = 0.0f;
 float		CURRENT_ROTY = 0.0f;
 float		CURRENT_ROTZ = 0.0f;
 int			CURRENT_TEXTURE = 0;
+bool		RENDER_DIR = true;
 bool press = false;
+
+float input_cooldown = 1.0f;
+float input_current = 1.0f;
 
 std::vector<std::string> texturenames;
 std::vector<TextureData> texturedata;
@@ -178,9 +182,9 @@ void InitializeGUI()
 	TwWindowSize(1280, 720);
 	TwBar* BarGUI = TwNewBar("Settings");
 	TwDefine(" GLOBAL fontsize=3");
-	TwDefine(" Settings position='1100 0'");
+	TwDefine(" Settings position='1050 0'");
 	TwDefine(" Settings color='0 0 0'");
-	TwDefine(" Settings size='200 500'");
+	TwDefine(" Settings size='250 500'");
 	TwDefine(" Settings refresh=0.1");
 	TwDefine(" Settings movable=false");
 	TwDefine(" Settings resizable=false");
@@ -192,6 +196,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROTY, "");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROTZ, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRO(BarGUI, "Texture: ", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
+	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL16, &RENDER_DIR, "");
 }
 
 void InitializeCamera ()
@@ -293,8 +298,8 @@ void CreateObjects()
 	ui_particle = new Object("Data/OBJ/particle.obj", &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), program, true);
 	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program);
 
-	ui_particle->Rescale (glm::vec3 (0.0625f, 0.1f, 1.0f));
-	ui_particle->Translate (glm::vec3 (15.0f, 5.0f, 0.0f));
+	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
+	ui_particle->Translate (glm::vec3 (6.8f, 2.3f, 0.0f));
 
 	//Initial rotation for arrow
 	glm::vec3 dir = glm::vec3(cos(verticalAngle) * sin(horizontalAngle),
@@ -338,6 +343,12 @@ glm::vec3 GetInputDir (double deltaTime)
 
 void Update (double deltaTime)
 {
+	if (input_current > 0.0f)
+	{
+		input_current = input_current - (float) deltaTime;
+	}
+
+
 	glm::vec3 rot (CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
 	arrow->Rotate (rot);
 
@@ -347,9 +358,11 @@ void Update (double deltaTime)
 		arrow->Rotate(rot);
 	}*/
 
-	if (GetAsyncKeyState (VK_RIGHT) && press == false)
+
+	if (GetAsyncKeyState (VK_RIGHT) && input_current <= 0.0f)
 	{
-		if (CURRENT_TEXTURE+1 > texturedata.size ())
+		input_current = input_cooldown;
+		if (CURRENT_TEXTURE+1 >= texturedata.size ())
 		{
 			CURRENT_TEXTURE = 0;
 		}
@@ -360,11 +373,22 @@ void Update (double deltaTime)
 
 		ps->Rebuild (&texturedata[CURRENT_TEXTURE]);
 		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
-		press = true;
+
 	}
-	else if (!GetAsyncKeyState (VK_RIGHT))
+	if (GetAsyncKeyState (VK_LEFT) && input_current <= 0.0f)
 	{
-		press = false;
+		input_current = input_cooldown;
+		if (CURRENT_TEXTURE - 1 < 0)
+		{
+			CURRENT_TEXTURE = texturedata.size()-1;
+		}
+		else
+		{
+			CURRENT_TEXTURE--;
+		}
+
+		ps->Rebuild (&texturedata[CURRENT_TEXTURE]);
+		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
 	}
 
 
@@ -409,7 +433,7 @@ void Render()
 	View = camera.GetView ();
 
 	//	--- Objects
-	if (arrow->IsActive())
+	if (arrow->IsActive() == true && RENDER_DIR)
 	{
 		glUseProgram (program);
 		Model = glm::mat4(1.0f);			//Model must be reset for each object and each frame
@@ -418,9 +442,10 @@ void Render()
 		MVP = Projection * View * Model;	//have to mult with PVM to get camera correct view
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);	//update "MVP" shader var to MVP matrix
 
+
 		arrow->Render();		//renders arrow buffers with shader program set in Initialize()
 	}
-	else
+	else if (arrow->IsActive () == false && RENDER_DIR)
 	{
 		glUseProgram (program);
 		Model = glm::mat4(1.0f);			//Model must be reset for each object and each frame
@@ -428,6 +453,7 @@ void Render()
 
 		MVP = Projection * View * Model;	//have to mult with PVM to get camera correct view
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);	//update "MVP" shader var to MVP matrix
+
 
 		sphere->Render();
 	}
@@ -457,6 +483,8 @@ void Render()
 	//	--- End of PS Object
 
 	// ----------- Render GUI -------- 
+	TwDraw ();
+
 	glDisable (GL_DEPTH_TEST);
 	glUseProgram (program);
 	Model = glm::mat4 (1.0f);
@@ -466,7 +494,6 @@ void Render()
 	glUniformMatrix4fv (MatrixID, 1, GL_FALSE, &MVP[0][0]);
 	ui_particle->Render ();
 
-	TwDraw();
 }
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )

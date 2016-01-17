@@ -95,19 +95,26 @@ void Object::Update ()
 {
 	Model = glm::mat4 (1.0f);
 
-	glm::mat4 Translation	= glm::translate (Model, m_position);
-	glm::mat4 Rotation		= glm::lookAt	 (m_position, m_rotation, m_up);
-	glm::mat4 Scale			= glm::scale	 (Model, m_scale);
-	
-	//"Correct" for objects
+	//"Correct" for UI objects only
 	if (m_textured)
 	{
-		Model = Scale * Translation;
+		glm::mat4 Scale = glm::mat4 (1.0f);
+		glm::mat4 Translation = glm::mat4 (1.0f);
+
+		Scale = glm::scale (Scale, m_scale);
+		Translation = glm::translate (Translation, m_position);
+		Model = Model * Scale;
+		Model = Model * Translation;
+
 	}
 
-	//"Correct" for UI objects only
+	//"Correct" objects
 	else
 	{
+		glm::mat4 Translation = glm::translate (Model, m_position);
+		glm::mat4 Rotation = glm::lookAt (m_position, m_rotation, m_up);
+		glm::mat4 Scale = glm::scale (Model, m_scale);
+
 		Model = Translation * Rotation * Scale;
 	}
 	return;
