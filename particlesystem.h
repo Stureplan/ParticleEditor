@@ -22,7 +22,7 @@ public:
 public:
 	void Initialize();
 	void Rebuild (TextureData*);
-	void Update(double, glm::vec3);
+	void Update(double, glm::vec3, float);
 	void Render();
 
 	glm::mat4 GetModel();

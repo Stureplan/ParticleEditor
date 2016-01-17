@@ -72,11 +72,13 @@ float		CURRENT_ROTX = 0.0f;
 float		CURRENT_ROTY = 0.0f;
 float		CURRENT_ROTZ = 0.0f;
 int			CURRENT_TEXTURE = 0;
+float		CURRENT_GRAVITY = -9.81f;
+std::string CURRENT_LABEL;
 bool		RENDER_DIR = true;
 bool press = false;
 
-float input_cooldown = 1.0f;
-float input_current = 1.0f;
+float input_cooldown = 0.3f;
+float input_current = 0.3f;
 
 std::vector<std::string> texturenames;
 std::vector<TextureData> texturedata;
@@ -88,6 +90,7 @@ Object* plane;
 Object* ui_particle;
 ParticleSystem* ps;
 Camera camera;
+TwBar* BarGUI;
 
 //Input variables
 POINT p;
@@ -167,7 +170,7 @@ std::vector<std::string> ListFiles(std::string directoryName)
 		listFileNames.push_back (WCHAR_TO_STRING (FindFileData.cFileName));
 	}
 
-	//Insert "Data/" at the beginning of each string
+	//Insert "Data/Textures" at the beginning of each string
 	for (int i = 0; i < listFileNames.size (); i++)
 	{
 		listFileNames[i].insert (0, std::string ("Data/Textures/"));
@@ -176,11 +179,35 @@ std::vector<std::string> ListFiles(std::string directoryName)
 	return listFileNames;
 }
 
+void SetLabel()
+{
+	std::string temp = texturenames.at(CURRENT_TEXTURE);
+	temp.erase (0, 14);
+
+	//Set label name to first part of the label
+	CURRENT_LABEL = "label='";
+
+	//Add texturename
+	CURRENT_LABEL.append (temp);
+
+	//Add finishing '
+	CURRENT_LABEL.append ("'");
+
+	std::string tw;
+
+	tw = " Settings/Name: ";
+	tw.append (CURRENT_LABEL);
+
+	TwDefine (tw.c_str());
+}
+
 void InitializeGUI()
 {
+	CURRENT_LABEL = texturenames.at (CURRENT_TEXTURE);
+
 	TwInit(TW_OPENGL, NULL);
 	TwWindowSize(1280, 720);
-	TwBar* BarGUI = TwNewBar("Settings");
+	BarGUI = TwNewBar("Settings");
 	TwDefine(" GLOBAL fontsize=3");
 	TwDefine(" Settings position='1050 0'");
 	TwDefine(" Settings color='0 0 0'");
@@ -190,13 +217,16 @@ void InitializeGUI()
 	TwDefine(" Settings resizable=false");
 	TwDefine(" Settings fontresizable=false");
 	
-	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.1f max=5.0f step=0.1f keyIncr=e keyDecr=d");
-	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.1f max=5.0f step=0.1f keyIncr=r keyDecr=f");
+	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f keyIncr=e keyDecr=d");
+	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f keyIncr=r keyDecr=f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROTX, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROTY, "");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROTZ, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRO(BarGUI, "Texture: ", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
-	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL16, &RENDER_DIR, "");
+	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "");
+	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL32, &RENDER_DIR, "");
+	TwAddVarRO (BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
+	TwAddButton (BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
+	SetLabel ();
 }
 
 void InitializeCamera ()
@@ -278,15 +308,6 @@ void CreateObjects()
 	part.force = 5.0f;
 	part.gforce = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
 
-	ParticleSystemData ui_part;
-	ui_part.width = 1.0f;
-	ui_part.height = 1.0f;
-	ui_part.lifetime = 0.0f;
-	ui_part.maxparticles = 1;
-	ui_part.time_offset = 0.0f;
-	ui_part.time_offset_total = 0.0f;
-	ui_part.force = 0.0f;
-	ui_part.gforce = 0.0f;
 
 	CURRENT_SCALE.x = (float)part.width;
 	CURRENT_SCALE.y = (float)part.height;
@@ -299,7 +320,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (6.8f, 2.3f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.8f, 2.0f, 0.0f));
 
 	//Initial rotation for arrow
 	glm::vec3 dir = glm::vec3(cos(verticalAngle) * sin(horizontalAngle),
@@ -373,6 +394,7 @@ void Update (double deltaTime)
 
 		ps->Rebuild (&texturedata[CURRENT_TEXTURE]);
 		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
+		SetLabel ();
 
 	}
 	if (GetAsyncKeyState (VK_LEFT) && input_current <= 0.0f)
@@ -389,6 +411,7 @@ void Update (double deltaTime)
 
 		ps->Rebuild (&texturedata[CURRENT_TEXTURE]);
 		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
+		SetLabel ();
 	}
 
 
@@ -412,7 +435,10 @@ void Update (double deltaTime)
 	
 	//Update shader variables
 	CameraPos = camera.GetPos();
-	ps->Update(deltaTime, rotation);
+
+	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
+	//and change its values. This way we can easily modify it and export later :()
+	ps->Update(deltaTime, rotation, CURRENT_GRAVITY);
 
 	glm::vec3 pos = camera.GetPos();
 	glm::vec3 dir = pos;
@@ -514,11 +540,11 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		int fps = 0;
 		unsigned int start = clock();
 
-		InitializeGUI();
+
 		InitializeCamera ();
 		CreateShaders();
 		CreateObjects();
-
+		InitializeGUI ();
 		ShowWindow(wndHandle, nCmdShow);
 
 		while (WM_QUIT != msg.message)

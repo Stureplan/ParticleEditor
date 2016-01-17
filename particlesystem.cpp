@@ -110,7 +110,7 @@ void ParticleSystem::Rebuild (TextureData* textureinfo)
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void ParticleSystem::Update(double deltaTime, glm::vec3 dir)
+void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity)
 {
 	if (m_particleinfo.time_offset > 0.0f)
 	{
@@ -142,7 +142,7 @@ void ParticleSystem::Update(double deltaTime, glm::vec3 dir)
 
 			//p.pos.y += (-9.81f + (p.ctime * 2)) * (float)deltaTime;
 			//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * (float)deltaTime;
-			p.pos.y += ((-9.81f + percent * 5) * m_particleinfo.gforce) * (float)deltaTime;
+			p.pos.y += ((gravity + percent * 5) * m_particleinfo.gforce) * (float)deltaTime;
 
 			m_vertices.at(i) = p.pos;
 		}
