@@ -1,20 +1,10 @@
-﻿Build started 2015-11-29 12:16:43.
-     1>Project "E:\OGL\Tr0n3k\OpenGL\Demo.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"E:\OGL\Tr0n3k\OpenGL\glew-1.11.0\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
-         main.cpp
-     1>e:\ogl\tr0n3k\opengl\main.cpp(224): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(229): warning C4244: '-=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(234): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(307): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\ogl\tr0n3k\opengl\main.cpp(310): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\OGL\Tr0n3k\OpenGL\Debug\Demo.exe" /INCREMENTAL /NOLOGO /LIBPATH:"E:\OGL\Tr0n3k\OpenGL\glew-1.11.0\lib\Release\Win32" opengl32.lib SOIL.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:MSVCRT /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\OGL\Tr0n3k\OpenGL\Debug\Demo.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\OGL\Tr0n3k\OpenGL\Debug\Demo.lib" /MACHINE:X86 Debug\loader.obj
-         Debug\main.obj
-         Debug\object.obj
-         Demo.vcxproj -> E:\OGL\Tr0n3k\OpenGL\Debug\Demo.exe
-     1>Done Building Project "E:\OGL\Tr0n3k\OpenGL\Demo.vcxproj" (Build target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:05.69
+﻿  main.cpp
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(143): warning C4018: '<' : signed/unsigned mismatch
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(149): warning C4172: returning address of local variable or temporary
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(167): warning C4018: '<' : signed/unsigned mismatch
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(233): warning C4018: '<' : signed/unsigned mismatch
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(324): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(352): warning C4018: '>' : signed/unsigned mismatch
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(512): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
+c:\users\linus\documents\tr0n3k\particle renderer\opengl_particles\main.cpp(515): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+  Demo.vcxproj -> C:\Users\Linus\Documents\Tr0n3k\Particle Renderer\OpenGL_Particles\Debug\Demo.exe

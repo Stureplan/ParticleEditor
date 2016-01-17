@@ -2,7 +2,7 @@
 
 Object::Object () { }
 
-Object::Object (const char* filename, TextureData* textureinfo, glm::vec3 position, GLuint shader)
+Object::Object (const char* filename, TextureData* textureinfo, glm::vec3 position, GLuint shader, bool textured)
 {
 	vertexbuffer = 0;
 	colorbuffer = 0;
@@ -15,8 +15,8 @@ Object::Object (const char* filename, TextureData* textureinfo, glm::vec3 positi
 	this->m_textureinfo = textureinfo;
 	this->m_position = position;
 	this->m_shader	 = shader;
+	this->m_textured = textured;
 
-	
 	Initialize ();
 }
 
@@ -34,19 +34,20 @@ void Object::Initialize ()
 		m_textureinfo->texturename,
 		&m_textureinfo->width, 
 		&m_textureinfo->height, 
-		0, SOIL_LOAD_RGB);
-	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, m_textureinfo->width, m_textureinfo->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		0, SOIL_LOAD_RGBA);
+	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, m_textureinfo->width, m_textureinfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	SOIL_free_image_data (image);
+
+	//Shader
 	glUniform1i (glGetUniformLocation (m_shader, "tex"), 0);
 
-//	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
 	//Initialize model matrix
 	Model = glm::mat4 (1.0f);
+
 
 	//Generate buffers
 	glGenBuffers (1, &vertexbuffer);
@@ -64,38 +65,87 @@ void Object::Initialize ()
 	vtxpos = glGetAttribLocation (m_shader, "vertex_position");
 	vtxcol = glGetAttribLocation (m_shader, "vertex_color");
 	vtxuv  = glGetAttribLocation (m_shader, "vertex_uv");
+
+	m_active = true;
 }
+
+void Object::Rebuild (TextureData* textureinfo)
+{
+	texture = 0;
+
+	this->m_textureinfo = textureinfo;
+
+	glGenTextures (1, &texture);
+	glBindTexture (GL_TEXTURE_2D, texture);
+	unsigned char* image = SOIL_load_image (
+		m_textureinfo->texturename,
+		&m_textureinfo->width,
+		&m_textureinfo->height,
+		0, SOIL_LOAD_RGBA);
+	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, m_textureinfo->width, m_textureinfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	SOIL_free_image_data (image);
+	glUniform1i (glGetUniformLocation (m_shader, "tex"), 0);
+
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
 
 void Object::Update ()
 {
 	Model = glm::mat4 (1.0f);
 
 	glm::mat4 Translation	= glm::translate (Model, m_position);
-	glm::mat4 Rotation		= glm::lookAt	 (m_position, m_position + m_rotation, m_up);
+	glm::mat4 Rotation		= glm::lookAt	 (m_position, m_rotation, m_up);
 	glm::mat4 Scale			= glm::scale	 (Model, m_scale);
+	
+	//"Correct" for objects
+	if (m_textured)
+	{
+		Model = Scale * Translation;
+	}
 
-	Model = Translation * Rotation * Scale;
+	//"Correct" for UI objects only
+	else
+	{
+		Model = Translation * Rotation * Scale;
+	}
 	return;
 }
 
 void Object::Render ()
 {
 	glUseProgram (m_shader);
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//Texture
+	glActiveTexture (GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glUniform1i (glGetUniformLocation (m_shader, "tex"), 0);
 
 	glEnableVertexAttribArray (vtxpos);
 	glBindBuffer (GL_ARRAY_BUFFER, vertexbuffer);
-	glVertexAttribPointer (vtxpos, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+	glVertexAttribPointer (vtxpos, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (const GLvoid*) 0);
 
 	glEnableVertexAttribArray (vtxcol);
 	glBindBuffer (GL_ARRAY_BUFFER, colorbuffer);
-	glVertexAttribPointer (vtxcol, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+	glVertexAttribPointer (vtxcol, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (const GLvoid*) 0);
 
 	glEnableVertexAttribArray (vtxuv);
 	glBindBuffer (GL_ARRAY_BUFFER, uvbuffer);
-	glVertexAttribPointer (vtxuv, 2, GL_FLOAT, GL_FALSE,  0, (void*) 0);
+	glVertexAttribPointer (vtxuv, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (const GLvoid*) 0);
 
 	//each individual object renders itself
-	glDrawArrays (GL_TRIANGLES, 0, m_vertices.size ());
+	if (m_textured)
+	{	//If we want it to show a texture, render with triangle strip
+		glDrawArrays (GL_TRIANGLES, 0, m_vertices.size ());
+
+	}
+	else
+	{	//Else, render lines
+		glDrawArrays (GL_LINE_STRIP, 0, m_vertices.size ());
+	}
 
 	glDisableVertexAttribArray (vtxpos);
 	glDisableVertexAttribArray (vtxcol);
@@ -120,6 +170,25 @@ void Object::Rescale (glm::vec3 scale)
 glm::mat4 Object::GetModel ()
 {
 	return this->Model;
+}
+
+glm::vec3 Object::GetScale()
+{
+	return this->m_scale;
+}
+
+bool Object::IsActive()
+{
+	return this->m_active;
+}
+
+void Object::SetActive(bool active)
+{
+	//glDeleteBuffers(1, &vertexbuffer);
+	//glDeleteBuffers(1, &colorbuffer);
+	//glDeleteBuffers(1, &uvbuffer);
+
+	m_active = active;
 }
 
 bool Object::LoadOBJ (const char* filepath)
@@ -216,7 +285,7 @@ bool Object::LoadOBJ (const char* filepath)
             m_vertices.push_back (vertex);
             m_uvs.push_back (uv);
             m_normals.push_back (normal);
-			m_colors.push_back (normal);
+			m_colors.push_back (glm::vec3(1.0f, 0.0f, 1.0f));
         }
     }
 

@@ -1,6 +1,6 @@
 #include "camera.h"
 
-void Camera::Initialize (glm::vec3 pos, glm::vec3 dir)
+void Camera::Initialize (glm::vec3 pos, glm::vec3 dir, int width, int height)
 {
 	View = glm::lookAt
 	(
@@ -15,6 +15,14 @@ void Camera::Initialize (glm::vec3 pos, glm::vec3 dir)
 		16.0f / 9.0f,			//aspect ratio
 		0.1f,					//near
 		100.0f					//far
+	);
+
+	Ortho = glm::ortho
+		(
+		0.0f,
+		(float)width,
+		(float)height,
+		0.0f
 	);
 }
 
@@ -51,4 +59,9 @@ glm::mat4 Camera::GetView ()
 glm::mat4 Camera::GetProj ()
 {
 	return Projection;
+}
+
+glm::mat4 Camera::GetOrtho ()
+{
+	return Ortho;
 }
