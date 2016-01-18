@@ -30,15 +30,25 @@ ParticleSystem::~ParticleSystem() { }
 
 void ParticleSystem::Initialize()
 {
+	//Initiate random gen
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+
+
+
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo.maxparticles; i++)
 	{
 		glm::vec3 vertex = m_position;
 		m_vertices.push_back(vertex);
-
+		
 		Particle p;
 		p.pos = m_position;
-		p.dir = m_direction;
+		float x = dist(mt);
+		float y = dist(mt);
+		float z = dist(mt);
+		p.dir = glm::vec3(x, y, z);
 		p.ctime = 0.0f;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -110,13 +120,13 @@ void ParticleSystem::Rebuild (TextureData* textureinfo)
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity)
+void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity, bool direction)
 {
 	if (m_particleinfo.time_offset > 0.0f)
 	{
 		m_particleinfo.time_offset -= deltaTime;
 	}
-
+	
 	for (int i = 0; i < m_particleinfo.maxparticles; i++)
 	{
 		//Get a reference to the current particle being processed
@@ -134,7 +144,15 @@ void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity)
 			float percent = p.ctime / m_particleinfo.lifetime;
 
 			//Increase velocity as time goes on
-			p.vel += dir * (float)deltaTime;
+			if (direction)
+			{
+				p.vel += dir * (float)deltaTime;
+			}
+			else
+			{
+				p.vel += p.dir * (float)deltaTime;
+			}
+
 
 			p.pos.x = p.vel.x * m_particleinfo.force;
 			//p.pos.y = p.vel.y * m_particleinfo.force;
@@ -142,7 +160,7 @@ void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity)
 
 			//p.pos.y += (-9.81f + (p.ctime * 2)) * (float)deltaTime;
 			//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * (float)deltaTime;
-			p.pos.y += ((gravity + percent * 5) * m_particleinfo.gforce) * (float)deltaTime;
+			p.pos.y += ((-9.81f + percent * 5) * gravity) * (float)deltaTime;
 
 			m_vertices.at(i) = p.pos;
 		}

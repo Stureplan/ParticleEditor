@@ -5,6 +5,8 @@
 #include <GL/glew.h>
 #include <vector>
 #include <gl/SOIL.h>
+#include <ctime>
+#include <random>
 
 #include "structs.h"
 
@@ -22,7 +24,7 @@ public:
 public:
 	void Initialize();
 	void Rebuild (TextureData*);
-	void Update(double, glm::vec3, float);
+	void Update(double, glm::vec3, float, bool);
 	void Render();
 
 	glm::mat4 GetModel();

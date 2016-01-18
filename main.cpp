@@ -72,7 +72,7 @@ float		CURRENT_ROTX = 0.0f;
 float		CURRENT_ROTY = 0.0f;
 float		CURRENT_ROTZ = 0.0f;
 int			CURRENT_TEXTURE = 0;
-float		CURRENT_GRAVITY = -9.81f;
+float		CURRENT_GRAVITY = 1.0f;
 std::string CURRENT_LABEL;
 bool		RENDER_DIR = true;
 bool press = false;
@@ -222,7 +222,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROTX, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROTY, "");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROTZ, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "");
+	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-5.0f max=5.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL32, &RENDER_DIR, "");
 	TwAddVarRO (BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton (BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
@@ -301,12 +301,12 @@ void CreateObjects()
 	ParticleSystemData part;
 	part.width = 0.2f;
 	part.height = 0.2f;
-	part.lifetime = 1.0f;
-	part.maxparticles = 20;
+	part.lifetime = 1.5f;
+	part.maxparticles = 100;
 	part.time_offset = 0.0f;
 	part.time_offset_total = 0.1f;
 	part.force = 5.0f;
-	part.gforce = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
+	part.gforce = 0.5f; //1.0f = earth grav, 0.5f = half earth grav
 
 
 	CURRENT_SCALE.x = (float)part.width;
@@ -438,7 +438,7 @@ void Update (double deltaTime)
 
 	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
 	//and change its values. This way we can easily modify it and export later :()
-	ps->Update(deltaTime, rotation, CURRENT_GRAVITY);
+	ps->Update(deltaTime, rotation, CURRENT_GRAVITY, arrow->IsActive());
 
 	glm::vec3 pos = camera.GetPos();
 	glm::vec3 dir = pos;
