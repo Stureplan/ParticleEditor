@@ -93,6 +93,9 @@ ParticleSystem* ps;
 Camera camera;
 TwBar* BarGUI;
 
+TextureData tex_export;
+ParticleSystemData ps_export;
+
 //Input variables
 POINT p;
 float mousespeed = 0.005f;
@@ -206,8 +209,50 @@ void TW_CALL Export(void *clientData)
 {
 	wchar_t buf[100] = { 0 };
 	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
-	wchar_t* test = buf;
+	std::wstring ws(buf);
+	std::string filename(ws.begin(), ws.end());
 
+	filename.append(".ps");
+
+	int testint = 0;
+	std::vector<std::string> filelist = ListFiles("Exports/*.ps");
+
+	for (int i = 0; i < filelist.size(); i++)
+	{
+		std::string loop = filelist[i];
+		loop.erase(0, 14);
+
+		if (filename == loop)
+		{
+			MessageBox(NULL, L"Filename already exists! Operation canceled, agent.", L"Error!", MB_OK);
+			return;
+		}
+	}
+
+	filename.insert(0, std::string("Exports/"));
+
+	//Export here
+	std::ofstream file;
+	file.open(filename);
+	
+	//Texture details
+	file << "Texture: \n";
+	file << tex_export.texturename << "\n";
+	file << tex_export.height << "\n";
+	file << tex_export.width << "\n";
+
+	//ParticleSystem details
+	file << "\n";
+	file << "Particle System: \n";
+	file << ps_export.width << "\n";
+	file << ps_export.height << "\n";
+	file << ps_export.maxparticles << "\n";
+	file << ps_export.lifetime << "\n";
+	file << ps_export.time_offset << "\n";
+	file << ps_export.time_offset_total << "\n";
+	file << ps_export.force << "\n";
+	file << ps_export.gforce << "\n";
+	file.close();
 }
 
 void InitializeGUI()
@@ -235,7 +280,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROTZ, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-5.0f max=5.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL32, &RENDER_DIR, "");
-	TwAddVarRO (BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
+	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 
 
@@ -320,6 +365,8 @@ void CreateObjects()
 	part.time_offset_total = 0.1f;
 	part.force = 5.0f;
 	part.gforce = 0.5f; //1.0f = earth grav, 0.5f = half earth grav
+
+	ps_export = part;
 
 
 	CURRENT_SCALE.x = (float)part.width;
@@ -461,6 +508,8 @@ void Update (double deltaTime)
 	camera.SetPos (pos);
 	camera.SetDir (dir);
 	camera.UpdateView ();
+
+	tex_export = texturedata.at(CURRENT_TEXTURE);
 }
 
 void Render()
