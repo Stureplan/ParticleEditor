@@ -30,6 +30,7 @@
 #include "object.h"
 #include "Shaders.h"
 #include "particlesystem.h"
+#include "Win32InputBox.h"
 
 using namespace glm;
 
@@ -201,6 +202,14 @@ void SetLabel()
 	TwDefine (tw.c_str());
 }
 
+void TW_CALL Export(void *clientData)
+{
+	wchar_t buf[100] = { 0 };
+	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
+	wchar_t* test = buf;
+
+}
+
 void InitializeGUI()
 {
 	CURRENT_LABEL = texturenames.at (CURRENT_TEXTURE);
@@ -216,7 +225,9 @@ void InitializeGUI()
 	TwDefine(" Settings movable=false");
 	TwDefine(" Settings resizable=false");
 	TwDefine(" Settings fontresizable=false");
+	TwDefine(" GLOBAL buttonalign=right ");
 	
+	TwAddButton(BarGUI, "Export", Export, NULL, " label='Export Particle System' ");
 	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f keyIncr=e keyDecr=d");
 	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f keyIncr=r keyDecr=f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROTX, "min=-1.0f max=1.0f step=0.05f");
@@ -225,7 +236,9 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-5.0f max=5.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL32, &RENDER_DIR, "");
 	TwAddVarRO (BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
-	TwAddButton (BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
+	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
+
+
 	SetLabel ();
 }
 
@@ -320,7 +333,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.8f, 2.0f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.8f, 1.5f, 0.0f));
 
 	//Initial rotation for arrow
 	glm::vec3 dir = glm::vec3(cos(verticalAngle) * sin(horizontalAngle),
@@ -521,6 +534,8 @@ void Render()
 	ui_particle->Render ();
 
 }
+
+
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
