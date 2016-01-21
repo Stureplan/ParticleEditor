@@ -214,9 +214,10 @@ void TW_CALL Export(void *clientData)
 
 	filename.append(".ps");
 
-	int testint = 0;
 	std::vector<std::string> filelist = ListFiles("Exports/*.ps");
 
+
+	//Checks if the filename user wrote is something that already exists
 	for (int i = 0; i < filelist.size(); i++)
 	{
 		std::string loop = filelist[i];
@@ -231,7 +232,7 @@ void TW_CALL Export(void *clientData)
 
 	filename.insert(0, std::string("Exports/"));
 
-	//Export here
+	//Opens file
 	std::ofstream file;
 	file.open(filename);
 	
