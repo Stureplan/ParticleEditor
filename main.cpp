@@ -52,7 +52,7 @@ GLuint ps_MatrixID;
 GLuint ps_CamID;
 GLuint ps_SizeID;
 
-
+ParticleSystemData temp;
 
 //Matrices
 glm::mat4 Model		 = glm::mat4(1.0f);
@@ -92,9 +92,6 @@ Object* ui_particle;
 ParticleSystem* ps;
 Camera camera;
 TwBar* BarGUI;
-
-TextureData tex_export;
-ParticleSystemData ps_export;
 
 //Input variables
 POINT p;
@@ -212,10 +209,15 @@ void TW_CALL Export(void *clientData)
 	std::wstring ws(buf);
 	std::string filename(ws.begin(), ws.end());
 
-	filename.append(".ps");
+
 
 	std::vector<std::string> filelist = ListFiles("Exports/*.ps");
 
+	if (filename.size() == 0)
+	{
+		return;
+	}
+	filename.append(".ps");
 
 	//Checks if the filename user wrote is something that already exists
 	for (int i = 0; i < filelist.size(); i++)
@@ -228,9 +230,17 @@ void TW_CALL Export(void *clientData)
 			MessageBox(NULL, L"Filename already exists! Operation canceled, agent.", L"Error!", MB_OK);
 			return;
 		}
+
 	}
 
 	filename.insert(0, std::string("Exports/"));
+
+	//Get info
+	TextureData tex_temp;
+	ParticleSystemData ps_temp;
+
+	tex_temp = ps->GetTextureData();
+	ps_temp	 = ps->GetPSData();
 
 	//Opens file
 	std::ofstream file;
@@ -238,21 +248,21 @@ void TW_CALL Export(void *clientData)
 	
 	//Texture details
 	file << "Texture: \n";
-	file << tex_export.texturename << "\n";
-	file << tex_export.height << "\n";
-	file << tex_export.width << "\n";
+	file << tex_temp.texturename << "\n";
+	file << tex_temp.height << "\n";
+	file << tex_temp.width << "\n";
 
 	//ParticleSystem details
 	file << "\n";
 	file << "Particle System: \n";
-	file << ps_export.width << "\n";
-	file << ps_export.height << "\n";
-	file << ps_export.maxparticles << "\n";
-	file << ps_export.lifetime << "\n";
-	file << ps_export.time_offset << "\n";
-	file << ps_export.time_offset_total << "\n";
-	file << ps_export.force << "\n";
-	file << ps_export.gforce << "\n";
+	file << ps_temp.width << "\n";
+	file << ps_temp.height << "\n";
+	file << ps_temp.maxparticles << "\n";
+	file << ps_temp.lifetime << "\n";
+	file << ps_temp.time_offset << "\n";
+	file << ps_temp.time_offset_total << "\n";
+	file << ps_temp.force << "\n";
+	file << ps_temp.gforce << "\n";
 	file.close();
 }
 
@@ -361,17 +371,17 @@ void CreateObjects()
 	part.width = 0.2f;
 	part.height = 0.2f;
 	part.lifetime = 1.5f;
-	part.maxparticles = 100;
+	part.maxparticles = 500;
 	part.time_offset = 0.0f;
-	part.time_offset_total = 0.1f;
-	part.force = 5.0f;
+	part.time_offset_total = 0.04f;
+	part.force = 2.0f;
 	part.gforce = 0.5f; //1.0f = earth grav, 0.5f = half earth grav
 
-	ps_export = part;
-
+	temp = part;
 
 	CURRENT_SCALE.x = (float)part.width;
 	CURRENT_SCALE.y = (float)part.height;
+	CURRENT_GRAVITY = part.gforce;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
@@ -497,9 +507,16 @@ void Update (double deltaTime)
 	//Update shader variables
 	CameraPos = camera.GetPos();
 
+
+	//Update temp with new values
+	temp.dir = rotation;
+	temp.width = CURRENT_SCALE.x;
+	temp.height = CURRENT_SCALE.y;
+	temp.gforce = CURRENT_GRAVITY;
+
 	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
 	//and change its values. This way we can easily modify it and export later :()
-	ps->Update(deltaTime, rotation, CURRENT_GRAVITY, arrow->IsActive());
+	ps->Update(deltaTime, rotation, CURRENT_GRAVITY, arrow->IsActive(), &temp, camera.GetPos());
 
 	glm::vec3 pos = camera.GetPos();
 	glm::vec3 dir = pos;
@@ -509,8 +526,6 @@ void Update (double deltaTime)
 	camera.SetPos (pos);
 	camera.SetDir (dir);
 	camera.UpdateView ();
-
-	tex_export = texturedata.at(CURRENT_TEXTURE);
 }
 
 void Render()

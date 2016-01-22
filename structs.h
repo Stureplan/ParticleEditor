@@ -10,6 +10,7 @@ struct TextureData
 
 struct ParticleSystemData
 {
+	glm::vec3 dir;
 	float width;
 	float height;
 	int maxparticles;
@@ -26,6 +27,12 @@ struct Particle
 	glm::vec3 dir;
 	glm::vec3 vel;
 	float ctime;
+	float dist;
+
+	bool operator<(const Particle& that) const
+	{
+		return this->dist > that.dist;
+	}
 };
 
 #endif

@@ -20,6 +20,7 @@ ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* te
 	m_particleinfo.force = particleinfo->force;
 	m_particleinfo.gforce = particleinfo->gforce;
 
+	this->time_offset = particleinfo->time_offset;
 	this->m_position = position;
 	this->m_shader = shader;
 
@@ -51,6 +52,7 @@ void ParticleSystem::Initialize()
 		p.dir = glm::vec3(x, y, z);
 		p.ctime = 0.0f;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+		p.dist = -1.0f;
 
 		m_particles.push_back(p);
 	}
@@ -120,11 +122,21 @@ void ParticleSystem::Rebuild (TextureData* textureinfo)
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity, bool direction)
+void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity, bool direction, ParticleSystemData* part, glm::vec3 campos)
 {
-	if (m_particleinfo.time_offset > 0.0f)
+	m_particleinfo.dir = part->dir;
+	m_particleinfo.force = part->force;
+	m_particleinfo.gforce = part->gforce;
+	m_particleinfo.height = part->height;
+	m_particleinfo.lifetime = part->lifetime;
+	m_particleinfo.maxparticles = part->maxparticles;
+	m_particleinfo.time_offset = part->time_offset;
+	m_particleinfo.time_offset_total = part->time_offset_total;
+	m_particleinfo.width = part->width;
+	
+	if (time_offset > 0.0f)
 	{
-		m_particleinfo.time_offset -= deltaTime;
+		time_offset -= deltaTime;
 	}
 	
 	for (int i = 0; i < m_particleinfo.maxparticles; i++)
@@ -162,20 +174,24 @@ void ParticleSystem::Update(double deltaTime, glm::vec3 dir, float gravity, bool
 			//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * (float)deltaTime;
 			p.pos.y += ((-9.81f + percent * 5) * gravity) * (float)deltaTime;
 
+			p.dist = glm::length(p.pos - campos);
 			m_vertices.at(i) = p.pos;
 		}
 
 		//If current lifetime and offset time has been reached,
 		//reset particle and move it back
-		if (p.ctime <= 0.0f && m_particleinfo.time_offset <= 0.0f)
+		if (p.ctime <= 0.0f && time_offset <= 0.0f)
 		{
 			p.ctime = m_particleinfo.lifetime;
 			p.pos = m_position;
 			p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+			p.dist = -1.0f;
 
-			m_particleinfo.time_offset = m_particleinfo.time_offset_total;
+			time_offset = m_particleinfo.time_offset_total;
 		}
 	}
+
+	std::sort(&m_particles[0], &m_particles[m_particleinfo.maxparticles-1]);
 }
 
 void ParticleSystem::Render()
@@ -202,4 +218,19 @@ void ParticleSystem::Render()
 glm::mat4 ParticleSystem::GetModel()
 {
 	return this->Model;
+}
+
+ParticleSystemData ParticleSystem::GetPSData()
+{
+	return this->m_particleinfo;
+}
+
+TextureData ParticleSystem::GetTextureData()
+{
+	TextureData temp;
+	temp.texturename = m_textureinfo->texturename;
+	temp.width = m_textureinfo->width;
+	temp.height = m_textureinfo->height;
+
+	return temp;
 }

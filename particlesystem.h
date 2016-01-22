@@ -7,6 +7,7 @@
 #include <gl/SOIL.h>
 #include <ctime>
 #include <random>
+#include <algorithm>
 
 #include "structs.h"
 
@@ -24,10 +25,12 @@ public:
 public:
 	void Initialize();
 	void Rebuild (TextureData*);
-	void Update(double, glm::vec3, float, bool);
+	void Update(double, glm::vec3, float, bool, ParticleSystemData*, glm::vec3);
 	void Render();
 
 	glm::mat4 GetModel();
+	ParticleSystemData GetPSData();
+	TextureData GetTextureData();
 	
 	void Rebuild(int, int, int, float, glm::vec3, glm::vec3);
 	void Shutdown();
@@ -48,6 +51,7 @@ private:
 	glm::vec3 m_position;
 	glm::vec3 m_direction;
 	float grav = 0.0f;
+	float time_offset;
 
 	glm::mat4 Model;
 	glm::mat4 LookAt = glm::mat4(1.0f);
