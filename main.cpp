@@ -69,9 +69,9 @@ glm::vec2	CURRENT_SCALE = glm::vec2 (1.0f);
 glm::vec2 FakeCurrentScale = glm::vec2 (1.0f, 1.0f);
 
 int			CURRENT_FPS = 0;
-float		CURRENT_ROTX = 0.0f;
-float		CURRENT_ROTY = 0.0f;
-float		CURRENT_ROTZ = 0.0f;
+//float		CURRENT_ROTX = 0.0f;
+//float		CURRENT_ROTY = 0.0f;
+//float		CURRENT_ROTZ = 0.0f;
 int			CURRENT_TEXTURE = 0;
 float		CURRENT_GRAVITY = 1.0f;
 std::string CURRENT_LABEL;
@@ -263,7 +263,7 @@ void TW_CALL Export(void *clientData)
 	file << ps_temp.lifetime << "\n";
 	file << ps_temp.rate << "\n";
 	file << ps_temp.force << "\n";
-	file << ps_temp.gforce << "\n";
+	file << ps_temp.gravity << "\n";
 	file.close();
 }
 
@@ -288,11 +288,11 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f keyIncr=e keyDecr=d");
 	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f keyIncr=r keyDecr=f");
-	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROTX, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROTY, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROTZ, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Direction", TW_TYPE_DIR3F, &CURRENT_ROT, "");
-	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-5.0f max=5.0f step=0.05f");
+//	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROTX, "min=-1.0f max=1.0f step=0.05f");
+//	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROTY, "min=-1.0f max=1.0f step=0.05f");
+//	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROTZ, "min=-1.0f max=1.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Direction", TW_TYPE_DIR3F, &CURRENT_ROT, "min=-1.0f max=1.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL32, &RENDER_DIR, "");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
@@ -373,17 +373,17 @@ void CreateObjects()
 	ParticleSystemData part;
 	part.width = 0.2f;
 	part.height = 0.2f;
-	part.lifetime = 1.0f;
+	part.lifetime = 5.0f;
 	part.maxparticles = 100;
 	part.rate = 0.0f;
 	part.force = 2.0f;
-	part.gforce = 0.5f; //1.0f = earth grav, 0.5f = half earth grav
+	part.gravity = 0.5f; //1.0f = earth grav, 0.5f = half earth grav
 
 	temp = part;
 
 	CURRENT_SCALE.x = (float)part.width;
 	CURRENT_SCALE.y = (float)part.height;
-	CURRENT_GRAVITY = part.gforce;
+	CURRENT_GRAVITY = part.gravity;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
@@ -402,10 +402,10 @@ void CreateObjects()
 	dir = glm::normalize(dir);
 
 	//Initial rot (direction) values
-	CURRENT_ROTX = dir.x;
-	CURRENT_ROTY = dir.y;
-	CURRENT_ROTZ = dir.z;
-	CURRENT_ROT = glm::vec3(CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
+//	CURRENT_ROTX = dir.x;
+//	CURRENT_ROTY = dir.y;
+//	CURRENT_ROTZ = dir.z;
+	CURRENT_ROT = glm::vec3(dir.x, dir.y, dir.z);
 
 	//Rotate arrow once with direction
 	arrow->Rotate(dir);
@@ -429,9 +429,10 @@ glm::vec3 GetInputDir (double deltaTime)
 
 	dir = glm::normalize (dir);
 
-	CURRENT_ROTX = dir.x;
-	CURRENT_ROTY = dir.y;
-	CURRENT_ROTZ = dir.z;
+	//CURRENT_ROTX = dir.x;
+	//CURRENT_ROTY = dir.y;
+	//CURRENT_ROTZ = dir.z;
+	CURRENT_ROT = { dir.x, dir.y, dir.z };
 
 	return dir;
 }
@@ -442,10 +443,6 @@ void Update (double deltaTime)
 	{
 		input_current = input_current - (float) deltaTime;
 	}
-
-
-	glm::vec3 rot (CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
-	arrow->Rotate (rot);
 
 /*	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
 	{
@@ -500,28 +497,32 @@ void Update (double deltaTime)
 	{
 		press = false;
 	}
+
+	arrow->Rotate(glm::vec3(CURRENT_ROT.x, -CURRENT_ROT.y, CURRENT_ROT.z));
 	
 	sphere->Update();
 	arrow->Update();	//updates model matrix (T * R * S compute)
 	ui_particle->Update ();
 
-	glm::vec3 rotation(CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
-	CURRENT_ROT = rotation;
+	//glm::vec3 rotation(CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
+	//CURRENT_ROT = rotation;
 
 	//Update shader variables
 	CameraPos = camera.GetPos();
 
 
+	CURRENT_ROT = glm::clamp(CURRENT_ROT, -1.0f, 1.0f);
+
 	//Update temp with new values
 	temp.dir = CURRENT_ROT;
 	temp.width = CURRENT_SCALE.x;
 	temp.height = CURRENT_SCALE.y;
-	temp.gforce = CURRENT_GRAVITY;
+	temp.gravity = CURRENT_GRAVITY;
 	temp.rate = CURRENT_RATE;
 
 	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
 	//and change its values. This way we can easily modify it and export later :()
-	ps->Update(deltaTime, CURRENT_GRAVITY, arrow->IsActive(), &temp, camera.GetPos());
+	ps->Update(deltaTime, arrow->IsActive(), &temp, camera.GetPos());
 
 	glm::vec3 pos = camera.GetPos();
 	glm::vec3 dir = pos;

@@ -17,7 +17,7 @@ struct ParticleSystemData
 	float lifetime;
 	float rate;
 	float force;
-	float gforce;
+	float gravity;
 };
 
 struct Particle

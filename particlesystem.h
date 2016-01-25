@@ -25,7 +25,7 @@ public:
 public:
 	void Initialize();
 	void Rebuild (TextureData*);
-	void Update(double, float, bool, ParticleSystemData*, glm::vec3);
+	void Update(double, bool, ParticleSystemData*, glm::vec3);
 	void Render();
 
 	glm::mat4 GetModel();

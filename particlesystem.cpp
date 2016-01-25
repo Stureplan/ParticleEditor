@@ -19,7 +19,7 @@ ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* te
 	m_particleinfo.lifetime = particleinfo->lifetime;
 	m_particleinfo.rate = particleinfo->rate;
 	m_particleinfo.force = particleinfo->force;
-	m_particleinfo.gforce = particleinfo->gforce;
+	m_particleinfo.gravity = particleinfo->gravity;
 
 	this->m_currentrate = 0.0f;
 	this->m_position = position;
@@ -123,11 +123,13 @@ void ParticleSystem::Rebuild (TextureData* textureinfo)
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void ParticleSystem::Update(double deltaTime, float gravity, bool direction, ParticleSystemData* part, glm::vec3 campos)
+void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData* part, glm::vec3 campos)
 {
+	float dT = (float)deltaTime;
+
 	m_particleinfo.dir = part->dir;
 	m_particleinfo.force = part->force;
-	m_particleinfo.gforce = part->gforce;
+	m_particleinfo.gravity = part->gravity;
 	m_particleinfo.height = part->height;
 	m_particleinfo.lifetime = part->lifetime;
 	m_particleinfo.maxparticles = part->maxparticles;
@@ -144,35 +146,38 @@ void ParticleSystem::Update(double deltaTime, float gravity, bool direction, Par
 		//Get a reference to the current particle being processed
 		Particle& p = m_particles.at(i);
 		
-		//Check for direction here: if (m_direction) p.vel += m_direction;
 
-		//If the particle still has "time", it's alive and
-		//needs to be updated and moved.
+		//If the particle still has "time", it's alive and needs to be updated and moved.
 		if (p.ctime > 0.0f)
 		{
 			//If it still has life left, decrease life by dT
 			p.ctime -= deltaTime;
 			
+			//How many percent of the particle's lifetime has been travelled
 			float percent = p.ctime / m_particleinfo.lifetime;
 
 			//Increase velocity as time goes on
 			if (direction)
 			{
-				p.vel -= m_particleinfo.dir * (float)deltaTime;
+				p.vel.x = m_particleinfo.dir.x * dT;
+				p.vel.y = m_particleinfo.dir.y * dT;
+				p.vel.z = m_particleinfo.dir.z * dT;
 			}
 			else
 			{
-				p.vel += p.dir * (float)deltaTime;
+				p.vel = p.dir * dT;
 			}
 
+			//Add the velocity to the position
+			p.pos.x -= p.vel.x * m_particleinfo.force;
+			p.pos.y += p.vel.y * m_particleinfo.force;
+			p.pos.z -= p.vel.z * m_particleinfo.force;
 
-			p.pos.x = p.vel.x * m_particleinfo.force;
-			//p.pos.y = p.vel.y * m_particleinfo.force;
-			p.pos.z = p.vel.z * m_particleinfo.force;
 
-			//p.pos.y += (-9.81f + (p.ctime * 2)) * (float)deltaTime;
-			//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * (float)deltaTime;
-			p.pos.y += ((-9.81f + percent * 5) * gravity) * (float)deltaTime;
+			//Lastly, add gravity
+			//p.pos.y += (-9.81f + (p.ctime * 2)) * dT;
+			//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * dT;
+			p.pos.y += ((-9.81f + percent * 10) * m_particleinfo.gravity) * dT;
 
 			p.dist = glm::length(p.pos - campos);
 			m_vertices.at(i) = p.pos;
