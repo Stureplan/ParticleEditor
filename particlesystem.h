@@ -51,6 +51,8 @@ private:
 	glm::vec3 m_position;
 	glm::vec3 m_direction;
 	float m_currentrate;
+	float m_currentwhen;
+	bool m_continuous;
 
 	glm::mat4 Model;
 	glm::mat4 LookAt = glm::mat4(1.0f);

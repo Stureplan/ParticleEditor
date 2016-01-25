@@ -54,6 +54,7 @@ void ParticleSystem::Initialize()
 		p.ctime = 0.0f;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
+		p.played = false;
 
 		m_particles.push_back(p);
 	}
@@ -123,6 +124,7 @@ void ParticleSystem::Rebuild (TextureData* textureinfo)
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
+
 void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData* part, glm::vec3 campos)
 {
 	float dT = (float)deltaTime;
@@ -148,7 +150,7 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 		
 
 		//If the particle still has "time", it's alive and needs to be updated and moved.
-		if (p.ctime > 0.0f)
+		if (p.ctime > 0.0f && p.played == false)
 		{
 			//If it still has life left, decrease life by dT
 			p.ctime -= deltaTime;
@@ -185,14 +187,25 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 
 		//If current lifetime and offset time has been reached,
 		//reset particle and move it back
-		if (p.ctime <= 0.0f && m_currentrate <= 0.0f)
+		if (p.ctime <= 0.0f && m_currentrate <= 0.0f && p.played == false)
 		{
-			p.ctime = m_particleinfo.lifetime;
-			p.pos = m_position;
-			p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
-			p.dist = -1.0f;
+			//if (m_particleinfo.continuous == true)
+			//{
+				p.ctime = m_particleinfo.lifetime;
+				p.pos = m_position;
+				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+				p.dist = -1.0f;
+				if (m_particleinfo.continuous == false)
+				{
+					p.played = true;
+				}
+				else
+				{
+					p.played = false;
+				}
 
-			m_currentrate = m_particleinfo.rate;
+				m_currentrate = m_particleinfo.rate;
+			//}
 		}
 	}
 

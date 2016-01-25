@@ -18,6 +18,7 @@ struct ParticleSystemData
 	float rate;
 	float force;
 	float gravity;
+	bool continuous;
 };
 
 struct Particle
@@ -27,6 +28,7 @@ struct Particle
 	glm::vec3 vel;
 	float ctime;
 	float dist;
+	bool played;
 
 	bool operator<(const Particle& that) const
 	{
