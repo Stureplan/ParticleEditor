@@ -447,12 +447,12 @@ void Update (double deltaTime)
 	glm::vec3 rot (CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
 	arrow->Rotate (rot);
 
-	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
+/*	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
 	{
 		rot = GetInputDir(deltaTime);
 		arrow->Rotate(rot);
 	}
-
+	*/
 
 	if (GetAsyncKeyState (VK_RIGHT) && input_current <= 0.0f)
 	{
@@ -513,7 +513,7 @@ void Update (double deltaTime)
 
 
 	//Update temp with new values
-	temp.dir = rotation;
+	temp.dir = CURRENT_ROT;
 	temp.width = CURRENT_SCALE.x;
 	temp.height = CURRENT_SCALE.y;
 	temp.gforce = CURRENT_GRAVITY;

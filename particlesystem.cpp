@@ -158,7 +158,7 @@ void ParticleSystem::Update(double deltaTime, float gravity, bool direction, Par
 			//Increase velocity as time goes on
 			if (direction)
 			{
-				p.vel += m_particleinfo.dir * (float)deltaTime;
+				p.vel -= m_particleinfo.dir * (float)deltaTime;
 			}
 			else
 			{
