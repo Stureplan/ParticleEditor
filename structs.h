@@ -15,8 +15,7 @@ struct ParticleSystemData
 	float height;
 	int maxparticles;
 	float lifetime;
-	float time_offset;
-	float time_offset_total;
+	float rate;
 	float force;
 	float gforce;
 };

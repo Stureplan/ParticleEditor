@@ -75,8 +75,10 @@ float		CURRENT_ROTZ = 0.0f;
 int			CURRENT_TEXTURE = 0;
 float		CURRENT_GRAVITY = 1.0f;
 std::string CURRENT_LABEL;
+float		CURRENT_RATE = 0.1f;
 bool		RENDER_DIR = true;
 bool press = false;
+glm::vec3	CURRENT_ROT;
 
 float input_cooldown = 0.3f;
 float input_current = 0.3f;
@@ -259,8 +261,7 @@ void TW_CALL Export(void *clientData)
 	file << ps_temp.height << "\n";
 	file << ps_temp.maxparticles << "\n";
 	file << ps_temp.lifetime << "\n";
-	file << ps_temp.time_offset << "\n";
-	file << ps_temp.time_offset_total << "\n";
+	file << ps_temp.rate << "\n";
 	file << ps_temp.force << "\n";
 	file << ps_temp.gforce << "\n";
 	file.close();
@@ -284,11 +285,13 @@ void InitializeGUI()
 	TwDefine(" GLOBAL buttonalign=right ");
 	
 	TwAddButton(BarGUI, "Export", Export, NULL, " label='Export Particle System' ");
+	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f keyIncr=e keyDecr=d");
 	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f keyIncr=r keyDecr=f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROTX, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROTY, "");
+	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROTY, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROTZ, "min=-1.0f max=1.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Direction", TW_TYPE_DIR3F, &CURRENT_ROT, "");
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-5.0f max=5.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL32, &RENDER_DIR, "");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
@@ -370,10 +373,9 @@ void CreateObjects()
 	ParticleSystemData part;
 	part.width = 0.2f;
 	part.height = 0.2f;
-	part.lifetime = 1.5f;
-	part.maxparticles = 500;
-	part.time_offset = 0.0f;
-	part.time_offset_total = 0.04f;
+	part.lifetime = 1.0f;
+	part.maxparticles = 100;
+	part.rate = 0.0f;
 	part.force = 2.0f;
 	part.gforce = 0.5f; //1.0f = earth grav, 0.5f = half earth grav
 
@@ -403,6 +405,7 @@ void CreateObjects()
 	CURRENT_ROTX = dir.x;
 	CURRENT_ROTY = dir.y;
 	CURRENT_ROTZ = dir.z;
+	CURRENT_ROT = glm::vec3(CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
 
 	//Rotate arrow once with direction
 	arrow->Rotate(dir);
@@ -444,11 +447,11 @@ void Update (double deltaTime)
 	glm::vec3 rot (CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
 	arrow->Rotate (rot);
 
-	/*if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
+	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
 	{
 		rot = GetInputDir(deltaTime);
 		arrow->Rotate(rot);
-	}*/
+	}
 
 
 	if (GetAsyncKeyState (VK_RIGHT) && input_current <= 0.0f)
@@ -502,8 +505,9 @@ void Update (double deltaTime)
 	arrow->Update();	//updates model matrix (T * R * S compute)
 	ui_particle->Update ();
 
-	glm::vec3 rotation(CURRENT_ROTZ, CURRENT_ROTY, CURRENT_ROTX);
-	
+	glm::vec3 rotation(CURRENT_ROTX, CURRENT_ROTY, CURRENT_ROTZ);
+	CURRENT_ROT = rotation;
+
 	//Update shader variables
 	CameraPos = camera.GetPos();
 
@@ -513,10 +517,11 @@ void Update (double deltaTime)
 	temp.width = CURRENT_SCALE.x;
 	temp.height = CURRENT_SCALE.y;
 	temp.gforce = CURRENT_GRAVITY;
+	temp.rate = CURRENT_RATE;
 
 	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
 	//and change its values. This way we can easily modify it and export later :()
-	ps->Update(deltaTime, rotation, CURRENT_GRAVITY, arrow->IsActive(), &temp, camera.GetPos());
+	ps->Update(deltaTime, CURRENT_GRAVITY, arrow->IsActive(), &temp, camera.GetPos());
 
 	glm::vec3 pos = camera.GetPos();
 	glm::vec3 dir = pos;
@@ -542,6 +547,7 @@ void Render()
 		glUseProgram (program);
 		Model = glm::mat4(1.0f);			//Model must be reset for each object and each frame
 		Model = arrow->GetModel();			//match Model with object Model
+		Model = glm::transpose(Model);
 
 		MVP = Projection * View * Model;	//have to mult with PVM to get camera correct view
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);	//update "MVP" shader var to MVP matrix
