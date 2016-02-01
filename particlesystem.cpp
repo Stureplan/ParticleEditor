@@ -102,25 +102,31 @@ void ParticleSystem::Initialize()
 	vtxpos = glGetAttribLocation(m_shader, "vertex_position");
 }
 
-void ParticleSystem::Rebuild (ParticleSystemData* particleinfo, TextureData* textureinfo)
+void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
+{	
+	//TODO: add ParticleSystemData* pointer support. (m_particleinfo)
+	//this->m_particleinfo = particleinfo;
+}
+
+void ParticleSystem::Retexture(TextureData* textureinfo)
 {
 	texture = 0;
 
 	this->m_textureinfo = textureinfo;
 
-	glGenTextures (1, &texture);
-	glBindTexture (GL_TEXTURE_2D, texture);
-	unsigned char* image = SOIL_load_image (
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	unsigned char* image = SOIL_load_image(
 		m_textureinfo->texturename,
 		&m_textureinfo->width,
 		&m_textureinfo->height,
 		0, SOIL_LOAD_RGBA);
-	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, m_textureinfo->width, m_textureinfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-	SOIL_free_image_data (image);
-	glUniform1i (glGetUniformLocation (m_shader, "tex"), 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_textureinfo->width, m_textureinfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	SOIL_free_image_data(image);
+	glUniform1i(glGetUniformLocation(m_shader, "tex"), 0);
 
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 

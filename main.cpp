@@ -271,7 +271,7 @@ void TW_CALL Export(void *clientData)
 
 void TW_CALL Rebuild(void *clientData)
 {
-	ps->Rebuild();
+	ps->Rebuild(&temp);
 }
 
 void InitializeGUI()
@@ -468,7 +468,7 @@ void Update (double deltaTime)
 			CURRENT_TEXTURE++;
 		}
 
-		ps->Rebuild (&texturedata[CURRENT_TEXTURE]);
+		ps->Retexture (&texturedata[CURRENT_TEXTURE]);
 		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
 		SetLabel ();
 
@@ -485,7 +485,7 @@ void Update (double deltaTime)
 			CURRENT_TEXTURE--;
 		}
 
-		ps->Rebuild (&texturedata[CURRENT_TEXTURE]);
+		ps->Retexture (&texturedata[CURRENT_TEXTURE]);
 		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
 		SetLabel ();
 	}
