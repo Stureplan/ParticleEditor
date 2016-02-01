@@ -21,6 +21,12 @@ struct ParticleSystemData
 	bool continuous;
 };
 
+struct PlayerData
+{
+	bool playing;
+
+};
+
 struct Particle
 {
 	glm::vec3 pos;
@@ -28,7 +34,6 @@ struct Particle
 	glm::vec3 vel;
 	float ctime;
 	float dist;
-	bool played;
 
 	bool operator<(const Particle& that) const
 	{

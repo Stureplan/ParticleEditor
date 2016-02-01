@@ -24,7 +24,7 @@ public:
 
 public:
 	void Initialize();
-	void Rebuild (TextureData*);
+	void Rebuild (ParticleSystemData*, TextureData*);
 	void Update(double, bool, ParticleSystemData*, glm::vec3);
 	void Render();
 
@@ -32,7 +32,6 @@ public:
 	ParticleSystemData GetPSData();
 	TextureData GetTextureData();
 	
-	void Rebuild(int, int, int, float, glm::vec3, glm::vec3);
 	void Shutdown();
 	void Play();
 
@@ -50,8 +49,7 @@ private:
 
 	glm::vec3 m_position;
 	glm::vec3 m_direction;
-	float m_currentrate;
-	float m_currentwhen;
+	float m_currentCD;
 	bool m_continuous;
 
 	glm::mat4 Model;

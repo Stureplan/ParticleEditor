@@ -21,7 +21,7 @@ ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* te
 	m_particleinfo.force = particleinfo->force;
 	m_particleinfo.gravity = particleinfo->gravity;
 
-	this->m_currentrate = 0.0f;
+	this->m_currentCD = 0.0f;
 	this->m_position = position;
 	this->m_shader = shader;
 
@@ -54,7 +54,6 @@ void ParticleSystem::Initialize()
 		p.ctime = 0.0f;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
-		p.played = false;
 
 		m_particles.push_back(p);
 	}
@@ -103,7 +102,7 @@ void ParticleSystem::Initialize()
 	vtxpos = glGetAttribLocation(m_shader, "vertex_position");
 }
 
-void ParticleSystem::Rebuild (TextureData* textureinfo)
+void ParticleSystem::Rebuild (ParticleSystemData* particleinfo, TextureData* textureinfo)
 {
 	texture = 0;
 
@@ -137,79 +136,118 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 	m_particleinfo.maxparticles = part->maxparticles;
 	m_particleinfo.rate = part->rate;
 	m_particleinfo.width = part->width;
+	m_particleinfo.continuous = part->continuous;
 	
-	if (m_currentrate > 0.0f)
+	if (m_currentCD > 0.0f)
 	{
-		m_currentrate -= deltaTime;
+		m_currentCD -= dT;
 	}
 	
 	for (int i = 0; i < m_particleinfo.maxparticles; i++)
 	{
 		//Get a reference to the current particle being processed
 		Particle& p = m_particles.at(i);
-		
 
-		//If the particle still has "time", it's alive and needs to be updated and moved.
-		if (p.ctime > 0.0f && p.played == false)
+		if (m_particleinfo.continuous == true)
 		{
-			//If it still has life left, decrease life by dT
-			p.ctime -= deltaTime;
-			
-			//How many percent of the particle's lifetime has been travelled
-			float percent = p.ctime / m_particleinfo.lifetime;
-
-			//Increase velocity as time goes on
-			if (direction)
+			//If the particle still has "time", it's alive and needs to be updated and moved.
+			if (p.ctime > 0.0f)
 			{
-				p.vel.x = m_particleinfo.dir.x * dT;
-				p.vel.y = m_particleinfo.dir.y * dT;
-				p.vel.z = m_particleinfo.dir.z * dT;
+				//If it still has life left, decrease life by dT
+				p.ctime -= dT;
+
+				//How many percent of the particle's lifetime has been travelled
+				float percent = p.ctime / m_particleinfo.lifetime;
+
+				//Increase velocity as time goes on
+				if (direction)
+				{
+					p.vel.x = m_particleinfo.dir.x * dT;
+					p.vel.y = m_particleinfo.dir.y * dT;
+					p.vel.z = m_particleinfo.dir.z * dT;
+				}
+				else
+				{
+					p.vel = p.dir * dT;
+				}
+
+				//Add the velocity to the position
+				p.pos.x -= p.vel.x * m_particleinfo.force;
+				p.pos.y += p.vel.y * m_particleinfo.force;
+				p.pos.z -= p.vel.z * m_particleinfo.force;
+
+
+				//Lastly, add gravity
+				//p.pos.y += (-9.81f + (p.ctime * 2)) * dT;
+				//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * dT;
+				p.pos.y += ((-9.81f + percent * 10) * m_particleinfo.gravity) * dT;
+
+				p.dist = glm::length(p.pos - campos);
+				m_vertices.at(i) = p.pos;
 			}
-			else
+
+			//If current lifetime and offset time has been reached,
+			//reset particle and move it back
+			else if (p.ctime <= 0.0f && m_currentCD <= 0.0f)
 			{
-				p.vel = p.dir * dT;
-			}
-
-			//Add the velocity to the position
-			p.pos.x -= p.vel.x * m_particleinfo.force;
-			p.pos.y += p.vel.y * m_particleinfo.force;
-			p.pos.z -= p.vel.z * m_particleinfo.force;
-
-
-			//Lastly, add gravity
-			//p.pos.y += (-9.81f + (p.ctime * 2)) * dT;
-			//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * dT;
-			p.pos.y += ((-9.81f + percent * 10) * m_particleinfo.gravity) * dT;
-
-			p.dist = glm::length(p.pos - campos);
-			m_vertices.at(i) = p.pos;
-		}
-
-		//If current lifetime and offset time has been reached,
-		//reset particle and move it back
-		if (p.ctime <= 0.0f && m_currentrate <= 0.0f && p.played == false)
-		{
-			//if (m_particleinfo.continuous == true)
-			//{
 				p.ctime = m_particleinfo.lifetime;
 				p.pos = m_position;
 				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 				p.dist = -1.0f;
-				if (m_particleinfo.continuous == false)
+
+				m_currentCD = m_particleinfo.rate;
+				m_vertices.at(i) = p.pos;
+			}
+		}
+
+		else if (m_particleinfo.continuous == false)
+		{
+			if (p.ctime >= 0.0f)
+			{
+				p.ctime -= dT;
+				
+				float percent = p.ctime / m_particleinfo.lifetime;
+
+				if (direction)
 				{
-					p.played = true;
+					p.vel.x = m_particleinfo.dir.x * dT;
+					p.vel.y = m_particleinfo.dir.y * dT;
+					p.vel.z = m_particleinfo.dir.z * dT;
 				}
 				else
 				{
-					p.played = false;
+					p.vel = p.dir * dT;
 				}
 
-				m_currentrate = m_particleinfo.rate;
-			//}
-		}
-	}
+				//Add the velocity to the position
+				p.pos.x -= p.vel.x * m_particleinfo.force;
+				p.pos.y += p.vel.y * m_particleinfo.force;
+				p.pos.z -= p.vel.z * m_particleinfo.force;
 
-	std::sort(&m_particles[0], &m_particles[m_particleinfo.maxparticles-1]);
+
+				//Lastly, add gravity
+				//p.pos.y += (-9.81f + (p.ctime * 2)) * dT;
+				//p.pos.y += (m_particleinfo.gforce + p.ctime * 5) * dT;
+				p.pos.y += ((-9.81f + percent * 10) * m_particleinfo.gravity) * dT;
+
+				p.dist = glm::length(p.pos - campos);
+				m_vertices.at(i) = p.pos;
+			}
+
+			else if (p.ctime < 0.0f)
+			{
+				p.pos = glm::vec3(0.0f, -1000.0f, 0.0f);
+				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+				p.dist = -1.0f;
+				m_vertices.at(i) = p.pos;
+			}
+		}
+		
+		
+	}
+	
+
+	//std::sort(&m_particles[0], &m_particles[m_particleinfo.maxparticles-1]);
 }
 
 void ParticleSystem::Render()

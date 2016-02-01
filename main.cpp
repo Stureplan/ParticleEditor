@@ -77,6 +77,7 @@ float		CURRENT_FORCE = 1.0f;
 float		CURRENT_GRAVITY = 0.0f;
 std::string CURRENT_LABEL;
 float		CURRENT_RATE = 0.1f;
+bool		CURRENT_REPEAT = true;
 bool		RENDER_DIR = true;
 bool press = false;
 glm::vec3	CURRENT_ROT;
@@ -268,6 +269,11 @@ void TW_CALL Export(void *clientData)
 	file.close();
 }
 
+void TW_CALL Rebuild(void *clientData)
+{
+	ps->Rebuild();
+}
+
 void InitializeGUI()
 {
 	CURRENT_LABEL = texturenames.at (CURRENT_TEXTURE);
@@ -286,7 +292,9 @@ void InitializeGUI()
 	TwDefine(" GLOBAL buttonalign=right ");
 	
 	TwAddButton(BarGUI, "Export", Export, NULL, " label='Export Particle System' ");
+	TwAddButton(BarGUI, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' ");
 	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
 	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f keyIncr=e keyDecr=d");
 	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f keyIncr=r keyDecr=f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROT.x, "min=-1.0f max=1.0f step=0.05f");
@@ -295,7 +303,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Force:", TW_TYPE_FLOAT, &CURRENT_FORCE, "min=-10.0f max=10.0f step=0.01");
 	//TwAddVarRW(BarGUI, "Direction", TW_TYPE_DIR3F, &CURRENT_ROT, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOL32, &RENDER_DIR, "");
+	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 
@@ -375,12 +383,12 @@ void CreateObjects()
 	ParticleSystemData part;
 	part.width = 0.2f;
 	part.height = 0.2f;
-	part.lifetime = 2.0f;
+	part.lifetime = 1.0f;
 	part.maxparticles = 100;
 	part.rate = 0.0f;
-	part.force = 2.0f;
-	part.gravity = 0.0f; //1.0f = earth grav, 0.5f = half earth grav
-	part.continuous = false;
+	part.force = 5.0f;
+	part.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
+	part.continuous = true;
 
 	temp = part;
 
@@ -396,7 +404,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.8f, 1.5f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.8f, 1.0f, 0.0f));
 
 	//Initial rotation for arrow
 	glm::vec3 dir = glm::vec3(cos(verticalAngle) * sin(horizontalAngle),
@@ -514,6 +522,7 @@ void Update (double deltaTime)
 	temp.force	 = CURRENT_FORCE;
 	temp.gravity = CURRENT_GRAVITY;
 	temp.rate	 = CURRENT_RATE;
+	temp.continuous = CURRENT_REPEAT;
 
 	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
 	//and change its values. This way we can easily modify it and export later :()
