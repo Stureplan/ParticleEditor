@@ -24,13 +24,13 @@ public:
 
 public:
 	void Initialize();
-	void Rebuild (ParticleSystemData*);
+	void Rebuild (ParticleSystemData*, int);
 	void Retexture (TextureData*);
 	void Update(double, bool, ParticleSystemData*, glm::vec3);
 	void Render();
 
 	glm::mat4 GetModel();
-	ParticleSystemData GetPSData();
+	ParticleSystemData* GetPSData();
 	TextureData GetTextureData();
 	
 	void Shutdown();
@@ -42,7 +42,7 @@ private:
 	GLuint vtxpos;
 	GLuint m_shader;
 
-	ParticleSystemData m_particleinfo;
+	ParticleSystemData* m_particleinfo;
 	TextureData* m_textureinfo;
 
 	std::vector<glm::vec3> m_vertices;

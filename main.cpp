@@ -241,7 +241,7 @@ void TW_CALL Export(void *clientData)
 
 	//Get info
 	TextureData tex_temp;
-	ParticleSystemData ps_temp;
+	ParticleSystemData* ps_temp;
 
 	tex_temp = ps->GetTextureData();
 	ps_temp	 = ps->GetPSData();
@@ -259,19 +259,19 @@ void TW_CALL Export(void *clientData)
 	//ParticleSystem details
 	file << "\n";
 	file << "Particle System: \n";
-	file << ps_temp.width << "\n";
-	file << ps_temp.height << "\n";
-	file << ps_temp.maxparticles << "\n";
-	file << ps_temp.lifetime << "\n";
-	file << ps_temp.rate << "\n";
-	file << ps_temp.force << "\n";
-	file << ps_temp.gravity << "\n";
+	file << ps_temp->width << "\n";
+	file << ps_temp->height << "\n";
+	file << ps_temp->maxparticles << "\n";
+	file << ps_temp->lifetime << "\n";
+	file << ps_temp->rate << "\n";
+	file << ps_temp->force << "\n";
+	file << ps_temp->gravity << "\n";
 	file.close();
 }
 
 void TW_CALL Rebuild(void *clientData)
 {
-	ps->Rebuild(&temp);
+	ps->Rebuild(&temp, 2);
 }
 
 void InitializeGUI()
