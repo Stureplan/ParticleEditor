@@ -24,7 +24,7 @@ public:
 
 public:
 	void Initialize();
-	void Rebuild (ParticleSystemData*, int);
+	void Rebuild (ParticleSystemData*);
 	void Retexture (TextureData*);
 	void Update(double, bool, ParticleSystemData*, glm::vec3);
 	void Render();

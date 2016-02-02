@@ -69,10 +69,8 @@ glm::vec2	CURRENT_SCALE = glm::vec2 (1.0f);
 glm::vec2 FakeCurrentScale = glm::vec2 (1.0f, 1.0f);
 
 int			CURRENT_FPS = 0;
-//float		CURRENT_ROTX = 0.0f;
-//float		CURRENT_ROTY = 0.0f;
-//float		CURRENT_ROTZ = 0.0f;
 int			CURRENT_TEXTURE = 0;
+int			CURRENT_VTXCOUNT = 0;
 float		CURRENT_FORCE = 1.0f;
 float		CURRENT_GRAVITY = 0.0f;
 std::string CURRENT_LABEL;
@@ -96,6 +94,7 @@ Object* ui_particle;
 ParticleSystem* ps;
 Camera camera;
 TwBar* BarGUI;
+TwBar* BarControls;
 
 //Input variables
 POINT p;
@@ -271,7 +270,8 @@ void TW_CALL Export(void *clientData)
 
 void TW_CALL Rebuild(void *clientData)
 {
-	ps->Rebuild(&temp, 2);
+	temp.maxparticles = CURRENT_VTXCOUNT;
+	ps->Rebuild(&temp);
 }
 
 void InitializeGUI()
@@ -281,6 +281,7 @@ void InitializeGUI()
 	TwInit(TW_OPENGL, NULL);
 	TwWindowSize(1280, 720);
 	BarGUI = TwNewBar("Settings");
+	BarControls = TwNewBar("Controls");
 	TwDefine(" GLOBAL fontsize=3");
 	TwDefine(" Settings position='1050 0'");
 	TwDefine(" Settings color='0 0 0'");
@@ -290,9 +291,17 @@ void InitializeGUI()
 	TwDefine(" Settings resizable=false");
 	TwDefine(" Settings fontresizable=false");
 	TwDefine(" GLOBAL buttonalign=right ");
-	
-	TwAddButton(BarGUI, "Export", Export, NULL, " label='Export Particle System' ");
-	TwAddButton(BarGUI, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' ");
+
+
+	TwDefine(" Controls position='0 0'");
+	TwDefine(" Controls color='0 0 0'");
+	TwDefine(" Controls size='250 250'");
+	TwDefine(" Controls refresh=0.1");
+	TwDefine(" Controls movable=false");
+	TwDefine(" Controls resizable=false");
+	TwDefine(" Controls fontresizable=false");
+
+	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_VTXCOUNT, "label='Max Particles:' ");
 	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
 	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f keyIncr=e keyDecr=d");
@@ -306,6 +315,9 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
+
+	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
+	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' ");
 
 
 	SetLabel ();
@@ -384,7 +396,7 @@ void CreateObjects()
 	part.width = 0.2f;
 	part.height = 0.2f;
 	part.lifetime = 1.0f;
-	part.maxparticles = 100;
+	part.maxparticles = 5;
 	part.rate = 0.0f;
 	part.force = 5.0f;
 	part.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
@@ -395,6 +407,7 @@ void CreateObjects()
 	CURRENT_SCALE.x = (float)part.width;
 	CURRENT_SCALE.y = (float)part.height;
 	CURRENT_GRAVITY = part.gravity;
+	CURRENT_VTXCOUNT = part.maxparticles;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);

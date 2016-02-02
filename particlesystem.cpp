@@ -102,12 +102,11 @@ void ParticleSystem::Initialize()
 	vtxpos = glGetAttribLocation(m_shader, "vertex_position");
 }
 
-void ParticleSystem::Rebuild (ParticleSystemData* particleinfo, int amount)
+void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 {	
 	this->m_particleinfo = particleinfo;
-	m_particleinfo->maxparticles = amount;
-	this->m_vertices.resize(amount);
-	this->m_particles.resize(amount);
+	this->m_vertices.resize(m_particleinfo->maxparticles);
+	this->m_particles.resize(m_particleinfo->maxparticles);
 	//TODO: Run cleanup on old particles.
 	//Delete and remove.
 
@@ -123,9 +122,6 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo, int amount)
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
 	{
-		glm::vec3 vertex = m_position;
-		m_vertices.push_back(vertex);
-
 		Particle p;
 		p.pos = m_position;
 		float x = dist(mt);
@@ -136,7 +132,9 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo, int amount)
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
 
-		m_particles.push_back(p);
+		m_particles.at(i) = p;
+		m_vertices.at(i) = p.pos;
+//		m_particles.push_back(p);
 	}
 
 	Model = glm::mat4(1.0f);
