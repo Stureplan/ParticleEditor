@@ -2,12 +2,13 @@
 
 ParticleSystem::ParticleSystem(){ }
 
-ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* textureinfo, glm::vec3 position, GLuint shader)
+ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* textureinfo, glm::vec3 position, GLuint shader, GLuint lshader)
 {
 	vertexbuffer = 0;
 	vtxpos = 0;
 
 	m_shader = 0;
+	m_lshader = 0;
 
 	//Set texture
 	this->m_textureinfo = textureinfo;
@@ -21,9 +22,10 @@ ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* te
 	m_particleinfo.force = particleinfo->force;
 	m_particleinfo.gravity = particleinfo->gravity;
 	*/
-	this->m_currentCD = 0.0f;
+	this->m_currentCD = m_particleinfo->rate;
 	this->m_position = position;
 	this->m_shader = shader;
+	this->m_lshader = lshader;
 
 	Initialize();
 }
@@ -51,33 +53,13 @@ void ParticleSystem::Initialize()
 		float y = dist(mt);
 		float z = dist(mt);
 		p.dir = glm::vec3(x, y, z);
-		p.ctime = 0.0f;
+		p.ctime = m_particleinfo->lifetime;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
+		p.alive = false;
 
 		m_particles.push_back(p);
 	}
-
-
-/*	for (int i = 0; i < m_textureinfo.size(); i++)
-	{
-		glGenTextures(1, &m_textureinfo[i]);
-		
-		unsigned char* image = SOIL_load_image(
-			m_textureinfo[i]->texturename,
-			&m_textureinfo[i]->width,
-			&m_textureinfo[i]->height,
-			0, SOIL_LOAD_RGBA);
-		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-			m_textureinfo[i]->width,
-			m_textureinfo[i]->height,
-			0, GL_RGBA, GL_UNSIGNED_BYTE,
-			image);
-
-		SOIL_free_image_data(image);
-	}
-*/
 
 	//Load texture
 	glGenTextures (1, &texture);
@@ -107,17 +89,11 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	this->m_particleinfo = particleinfo;
 	this->m_vertices.resize(m_particleinfo->maxparticles);
 	this->m_particles.resize(m_particleinfo->maxparticles);
-	//TODO: Run cleanup on old particles.
-	//Delete and remove.
-
-
 
 	//Initiate random gen
 	std::random_device rd;
 	std::mt19937 mt(rd());
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
-
-
 
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
@@ -128,13 +104,14 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 		float y = dist(mt);
 		float z = dist(mt);
 		p.dir = glm::vec3(x, y, z);
-		p.ctime = 0.0f;
+		p.ctime = m_particleinfo->lifetime;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
+		p.alive = false;
+		m_currentCD = m_particleinfo->rate;
 
 		m_particles.at(i) = p;
 		m_vertices.at(i) = p.pos;
-//		m_particles.push_back(p);
 	}
 
 	Model = glm::mat4(1.0f);
@@ -177,7 +154,8 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 	{
 		m_currentCD -= dT;
 	}
-	
+
+
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
 	{
 		//Get a reference to the current particle being processed
@@ -186,7 +164,7 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 		if (m_particleinfo->continuous == true)
 		{
 			//If the particle still has "time", it's alive and needs to be updated and moved.
-			if (p.ctime > 0.0f)
+			if (p.ctime > 0.0f && p.alive == true)
 			{
 				//If it still has life left, decrease life by dT
 				p.ctime -= dT;
@@ -221,10 +199,23 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 				m_vertices.at(i) = p.pos;
 			}
 
-			//If current lifetime and offset time has been reached,
-			//reset particle and move it back
-			else if (p.ctime <= 0.0f && m_currentCD <= 0.0f)
+			//If current lifetime is reached and particle still alive,
+			//kill it and reset particle lifetime
+			else if (p.ctime <= 0.0f && p.alive == true)
 			{
+				p.alive = false;
+				p.ctime = m_particleinfo->lifetime;
+				p.pos = m_position;
+				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+				p.dist = -1.0f;
+
+				m_vertices.at(i) = p.pos;
+			}
+
+			//If cooldown is reached and particle dead, wake particle
+			else if (m_currentCD <= 0.0f && p.alive == false)
+			{
+				p.alive = true;
 				p.ctime = m_particleinfo->lifetime;
 				p.pos = m_position;
 				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -235,9 +226,12 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 			}
 		}
 
+		//TODO: When a non-continuous PS has reached end of life,
+		//resize m_particles and m_vertices to 0.
 		else if (m_particleinfo->continuous == false)
 		{
-			if (p.ctime >= 0.0f)
+			//If the particle has time and is alive, update as usual
+			if (p.ctime > 0.0f && p.alive == true)
 			{
 				p.ctime -= dT;
 				
@@ -269,11 +263,28 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 				m_vertices.at(i) = p.pos;
 			}
 
-			else if (p.ctime < 0.0f)
+			//If the particle doesn't have time left and is alive,
+			//kill it and move it above PS
+			else if (p.ctime <= 0.0f && p.alive == true)
 			{
-				p.pos = glm::vec3(0.0f, -1000.0f, 0.0f);
+				p.alive = false;
+				p.pos = m_position;
 				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 				p.dist = -1.0f;
+
+				m_vertices.at(i) = p.pos;
+			}
+
+			//If the cooldown has been reached and the particle is dead,
+			//wake it up and put it in the origin
+			else if (m_currentCD <= 0.0f && p.alive == false)
+			{
+				p.alive = true;
+				p.pos = m_position;
+				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+				p.dist = -1.0f;
+
+				m_currentCD = m_particleinfo->rate;
 				m_vertices.at(i) = p.pos;
 			}
 		}
@@ -298,10 +309,29 @@ void ParticleSystem::Render()
 
 	glEnableVertexAttribArray(vtxpos);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(vtxpos, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 
-	glDrawArrays(GL_POINTS, 0, m_vertices.size());
+	//glDrawArrays(GL_POINTS, 0, m_vertices.size());
+
+	glDisableVertexAttribArray(vtxpos);
+}
+
+void ParticleSystem::RenderLightning()
+{
+	glUseProgram(m_lshader);
+	glEnableVertexAttribArray(vtxpos);
+	
+	
+	//Initiate random gen
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_int_distribution<int32_t> dist(1, m_vertices.size());
+	
+	std::uniform_real_distribution<float> distf(1.0f, 5.0f);
+	glLineWidth(distf(mt));
+
+	glDrawArrays(GL_LINE_STRIP, 0, m_vertices.size());
 
 	glDisableVertexAttribArray(vtxpos);
 }
@@ -316,12 +346,7 @@ ParticleSystemData* ParticleSystem::GetPSData()
 	return this->m_particleinfo;
 }
 
-TextureData ParticleSystem::GetTextureData()
+TextureData* ParticleSystem::GetTextureData()
 {
-	TextureData temp;
-	temp.texturename = m_textureinfo->texturename;
-	temp.width = m_textureinfo->width;
-	temp.height = m_textureinfo->height;
-
-	return temp;
+	return this->m_textureinfo;
 }

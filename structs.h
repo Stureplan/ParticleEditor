@@ -21,6 +21,8 @@ struct ParticleSystemData
 	bool continuous;
 };
 
+//TODO: Separate ParticleSystemData from PlayerData
+//to handle playback and stuff
 struct PlayerData
 {
 	bool playing;
@@ -34,6 +36,7 @@ struct Particle
 	glm::vec3 vel;
 	float ctime;
 	float dist;
+	bool alive;
 
 	bool operator<(const Particle& that) const
 	{

@@ -19,7 +19,7 @@ class ParticleSystem
 {
 public:
 	ParticleSystem();
-	ParticleSystem(ParticleSystemData*, TextureData*, glm::vec3, GLuint);
+	ParticleSystem(ParticleSystemData*, TextureData*, glm::vec3, GLuint, GLuint);
 	~ParticleSystem();
 
 public:
@@ -28,10 +28,12 @@ public:
 	void Retexture (TextureData*);
 	void Update(double, bool, ParticleSystemData*, glm::vec3);
 	void Render();
+	void RenderLightning();
 
 	glm::mat4 GetModel();
 	ParticleSystemData* GetPSData();
-	TextureData GetTextureData();
+	TextureData* GetTextureData();
+	float GetLifetime();
 	
 	void Shutdown();
 	void Play();
@@ -41,6 +43,7 @@ private:
 	GLuint vertexbuffer;
 	GLuint vtxpos;
 	GLuint m_shader;
+	GLuint m_lshader;
 
 	ParticleSystemData* m_particleinfo;
 	TextureData* m_textureinfo;

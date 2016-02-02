@@ -52,6 +52,9 @@ GLuint ps_MatrixID;
 GLuint ps_CamID;
 GLuint ps_SizeID;
 
+GLuint ps_lprogram = 0;
+GLuint ps_lMatrixID;
+
 ParticleSystemData temp;
 
 //Matrices
@@ -75,6 +78,7 @@ float		CURRENT_FORCE = 1.0f;
 float		CURRENT_GRAVITY = 0.0f;
 std::string CURRENT_LABEL;
 float		CURRENT_RATE = 0.1f;
+float		CURRENT_LIFETIME = 1.0f;
 bool		CURRENT_REPEAT = true;
 bool		RENDER_DIR = true;
 bool press = false;
@@ -239,7 +243,7 @@ void TW_CALL Export(void *clientData)
 	filename.insert(0, std::string("Exports/"));
 
 	//Get info
-	TextureData tex_temp;
+	TextureData* tex_temp;
 	ParticleSystemData* ps_temp;
 
 	tex_temp = ps->GetTextureData();
@@ -251,9 +255,9 @@ void TW_CALL Export(void *clientData)
 	
 	//Texture details
 	file << "Texture: \n";
-	file << tex_temp.texturename << "\n";
-	file << tex_temp.height << "\n";
-	file << tex_temp.width << "\n";
+	file << tex_temp->texturename << "\n";
+	file << tex_temp->height << "\n";
+	file << tex_temp->width << "\n";
 
 	//ParticleSystem details
 	file << "\n";
@@ -280,9 +284,11 @@ void InitializeGUI()
 
 	TwInit(TW_OPENGL, NULL);
 	TwWindowSize(1280, 720);
-	BarGUI = TwNewBar("Settings");
+	BarGUI		= TwNewBar("Settings");
 	BarControls = TwNewBar("Controls");
 	TwDefine(" GLOBAL fontsize=3");
+	TwDefine(" GLOBAL buttonalign=right ");
+
 	TwDefine(" Settings position='1050 0'");
 	TwDefine(" Settings color='0 0 0'");
 	TwDefine(" Settings size='250 500'");
@@ -290,8 +296,6 @@ void InitializeGUI()
 	TwDefine(" Settings movable=false");
 	TwDefine(" Settings resizable=false");
 	TwDefine(" Settings fontresizable=false");
-	TwDefine(" GLOBAL buttonalign=right ");
-
 
 	TwDefine(" Controls position='0 0'");
 	TwDefine(" Controls color='0 0 0'");
@@ -303,9 +307,10 @@ void InitializeGUI()
 
 	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_VTXCOUNT, "label='Max Particles:' ");
 	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=5.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
-	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f keyIncr=e keyDecr=d");
-	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f keyIncr=r keyDecr=f");
+	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROT.x, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROT.y, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROT.z, "min=-1.0f max=1.0f step=0.05f");
@@ -315,9 +320,9 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
-
+	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
-	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' ");
+	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
 
 
 	SetLabel ();
@@ -336,11 +341,15 @@ void CreateShaders()
 	//Create and load shaders (Name GS "none" to disable GS)
 	program = LoadShaders("vertex.glsl", "none", "fragment.glsl");
 	ps_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
+	ps_lprogram = LoadShaders("particle_lvs.glsl", "none", "particle_lfs.glsl");
 
 	MatrixID = glGetUniformLocation (program, "MVP");
+	
 	ps_MatrixID = glGetUniformLocation(ps_program, "MVP");
 	ps_CamID = glGetUniformLocation(ps_program, "cam");
 	ps_SizeID = glGetUniformLocation(ps_program, "size");
+
+	ps_lMatrixID = glGetUniformLocation(ps_lprogram, "MVP");
 
 	glClearColor (0.2f, 0.2f, 0.2f, 0.0f);
 }
@@ -396,7 +405,7 @@ void CreateObjects()
 	part.width = 0.2f;
 	part.height = 0.2f;
 	part.lifetime = 1.0f;
-	part.maxparticles = 5;
+	part.maxparticles = 100;
 	part.rate = 0.0f;
 	part.force = 5.0f;
 	part.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
@@ -408,13 +417,14 @@ void CreateObjects()
 	CURRENT_SCALE.y = (float)part.height;
 	CURRENT_GRAVITY = part.gravity;
 	CURRENT_VTXCOUNT = part.maxparticles;
+	CURRENT_LIFETIME = part.lifetime;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
 	plane	= new Object("Data/OBJ/plane.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 
 	ui_particle = new Object("Data/OBJ/particle.obj", &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), program, true);
-	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program);
+	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
 	ui_particle->Translate (glm::vec3 (5.8f, 1.0f, 0.0f));
@@ -529,12 +539,13 @@ void Update (double deltaTime)
 	CURRENT_ROT = glm::clamp(CURRENT_ROT, -1.0f, 1.0f);
 
 	//Update temp with new values
-	temp.dir	 = CURRENT_ROT;
-	temp.width	 = CURRENT_SCALE.x;
-	temp.height	 = CURRENT_SCALE.y;
-	temp.force	 = CURRENT_FORCE;
-	temp.gravity = CURRENT_GRAVITY;
-	temp.rate	 = CURRENT_RATE;
+	temp.dir		= CURRENT_ROT;
+	temp.width		= CURRENT_SCALE.x;
+	temp.height		= CURRENT_SCALE.y;
+	temp.force		= CURRENT_FORCE;
+	temp.gravity	= CURRENT_GRAVITY;
+	temp.rate		= CURRENT_RATE;
+	temp.lifetime	= CURRENT_LIFETIME;
 	temp.continuous = CURRENT_REPEAT;
 
 	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
@@ -595,7 +606,7 @@ void Render()
 		MVP = Projection * View * Model;	//have to mult with PVM to get camera correct view
 		glUniformMatrix4fv (MatrixID, 1, GL_FALSE, &MVP[0][0]);	//update "MVP" shader var to MVP matrix
 
-		plane->Render ();
+		//plane->Render ();
 	}
 	//	--- End of Objects
 
@@ -608,6 +619,10 @@ void Render()
 	glUniform3fv(ps_CamID, 1, glm::value_ptr(CameraPos));
 	glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
 	ps->Render();
+
+	glUseProgram(ps_lprogram);
+	glUniformMatrix4fv(ps_lMatrixID, 1, GL_FALSE, &VP[0][0]);
+	ps->RenderLightning();
 	//	--- End of PS Object
 
 	// ----------- Render GUI -------- 
