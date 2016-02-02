@@ -61,6 +61,8 @@ void ParticleSystem::Initialize()
 		m_particles.push_back(p);
 	}
 
+	m_deadparticles = 0;
+
 	//Load texture
 	glGenTextures (1, &texture);
 	glBindTexture (GL_TEXTURE_2D, texture);
@@ -113,6 +115,8 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 		m_particles.at(i) = p;
 		m_vertices.at(i) = p.pos;
 	}
+
+	m_deadparticles = 0;
 
 	Model = glm::mat4(1.0f);
 
@@ -268,11 +272,18 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 			else if (p.ctime <= 0.0f && p.alive == true)
 			{
 				p.alive = false;
+
 				p.pos = m_position;
 				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 				p.dist = -1.0f;
 
 				m_vertices.at(i) = p.pos;
+
+				//m_deadparticles++;
+				//if (m_deadparticles == m_particleinfo->maxparticles)
+				//{
+				//	m_vertices.resize(0);
+				//}
 			}
 
 			//If the cooldown has been reached and the particle is dead,
@@ -312,7 +323,7 @@ void ParticleSystem::Render()
 	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(vtxpos, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 
-	//glDrawArrays(GL_POINTS, 0, m_vertices.size());
+	glDrawArrays(GL_POINTS, 0, m_vertices.size());
 
 	glDisableVertexAttribArray(vtxpos);
 }
@@ -331,8 +342,12 @@ void ParticleSystem::RenderLightning()
 	std::uniform_real_distribution<float> distf(1.0f, 5.0f);
 	glLineWidth(distf(mt));
 
-	glDrawArrays(GL_LINE_STRIP, 0, m_vertices.size());
 
+
+	glDrawArrays(GL_LINE_STRIP, 0, m_vertices.size());
+	
+
+	
 	glDisableVertexAttribArray(vtxpos);
 }
 

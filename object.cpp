@@ -151,6 +151,7 @@ void Object::Render ()
 	}
 	else
 	{	//Else, render lines
+		glLineWidth(1.0f);
 		glDrawArrays (GL_LINE_STRIP, 0, m_vertices.size ());
 	}
 

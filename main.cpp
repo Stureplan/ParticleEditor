@@ -548,8 +548,8 @@ void Update (double deltaTime)
 	temp.lifetime	= CURRENT_LIFETIME;
 	temp.continuous = CURRENT_REPEAT;
 
-	//TODO: Instead of separate variables, send one whole ParticleInfo struct each frame
-	//and change its values. This way we can easily modify it and export later :()
+	//TODO: Callback function when changing particle count
+	//TODO: Helper function file.h
 	ps->Update(deltaTime, arrow->IsActive(), &temp, camera.GetPos());
 
 	glm::vec3 pos = camera.GetPos();
@@ -606,7 +606,7 @@ void Render()
 		MVP = Projection * View * Model;	//have to mult with PVM to get camera correct view
 		glUniformMatrix4fv (MatrixID, 1, GL_FALSE, &MVP[0][0]);	//update "MVP" shader var to MVP matrix
 
-		//plane->Render ();
+		plane->Render ();
 	}
 	//	--- End of Objects
 

@@ -55,6 +55,7 @@ private:
 	glm::vec3 m_direction;
 	float m_currentCD;
 	bool m_continuous;
+	int m_deadparticles;
 
 	glm::mat4 Model;
 	glm::mat4 LookAt = glm::mat4(1.0f);
