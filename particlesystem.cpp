@@ -280,14 +280,16 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 						p.vel = p.dir * dT;
 					}
 
+					//Lastly, add gravity
+					p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
+
 					//Add the velocity to the position
 					p.pos.x -= p.vel.x * m_particleinfo->force;
 					p.pos.y += p.vel.y * m_particleinfo->force;
 					p.pos.z -= p.vel.z * m_particleinfo->force;
 
 
-					//Lastly, add gravity
-					p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
+
 
 					p.dist = glm::length(p.pos - campos);
 					m_vertices.at(i) = p.pos;
@@ -320,8 +322,6 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 				}
 			}
 		}
-
-		//std::sort(&m_particles[0], &m_particles[m_particleinfo.maxparticles-1]);
 
 	}
 
@@ -391,7 +391,7 @@ TextureData* ParticleSystem::GetTextureData()
 	return this->m_textureinfo;
 }
 
-bool ParticleSystem::GetPlaying()
+bool ParticleSystem::IsPlaying()
 {
 	return this->m_playing;
 }

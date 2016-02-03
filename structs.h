@@ -37,11 +37,6 @@ struct Particle
 	float ctime;
 	float dist;
 	bool alive;
-
-	bool operator<(const Particle& that) const
-	{
-		return this->dist > that.dist;
-	}
 };
 
 #endif

@@ -33,7 +33,7 @@ public:
 	glm::mat4 GetModel();
 	ParticleSystemData* GetPSData();
 	TextureData* GetTextureData();
-	bool GetPlaying();
+	bool IsPlaying();
 
 	void Play();
 	void Pause();

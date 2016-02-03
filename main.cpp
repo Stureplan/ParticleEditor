@@ -280,7 +280,7 @@ void TW_CALL Rebuild(void *clientData)
 
 void TW_CALL PausePlay(void* clientData)
 {
-	if (ps->GetPlaying() == true)
+	if (ps->IsPlaying() == true)
 	{
 		ps->Pause();
 	}
@@ -335,7 +335,7 @@ void InitializeGUI()
 	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
 	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
-	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' ");
+	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
 
 	SetLabel ();
