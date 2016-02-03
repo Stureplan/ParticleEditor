@@ -39,6 +39,28 @@ struct Particle
 	bool alive;
 };
 
+
+struct ExportParticle
+{
+	glm::vec3* pos;
+	glm::vec3* dir;
+	float* intensity;
+};
+
+//TODO: Fix burning non-repeating particle Update loop
+struct ExportSystemData 
+{
+	int headerSize;
+	int frames;
+	glm::vec2 quadSize;
+	char* textureName;
+	bool continuous;
+	int nrOfParticles;
+	int particleSize;
+ 	ExportParticle* particles;
+};
+
+
 #endif
 
 
