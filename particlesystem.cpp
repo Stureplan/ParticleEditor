@@ -217,7 +217,7 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 
 
 					//Lastly, add gravity
-					p.vel.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
+					p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
 
 					//Add the velocity to the position
 					p.pos.x -= p.vel.x * m_particleinfo->force;
@@ -271,7 +271,14 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 
 					if (direction)
 					{
-						m_directions.at(i) = m_particleinfo->dir;
+						m_directions.at(i) =
+							glm::normalize(
+								glm::vec3
+								(
+								 m_particleinfo->dir.x,
+								 -m_particleinfo->dir.y,
+								 m_particleinfo->dir.z
+								));
 						p.vel = m_particleinfo->dir * dT;
 					}
 					else
@@ -287,8 +294,6 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 					p.pos.x -= p.vel.x * m_particleinfo->force;
 					p.pos.y += p.vel.y * m_particleinfo->force;
 					p.pos.z -= p.vel.z * m_particleinfo->force;
-
-
 
 
 					p.dist = glm::length(p.pos - campos);
