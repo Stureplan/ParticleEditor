@@ -47,7 +47,6 @@ struct ExportParticle
 	float* intensity;
 };
 
-//TODO: Fix burning non-repeating particle Update loop
 struct ExportSystemData 
 {
 	int headerSize;

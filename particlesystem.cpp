@@ -162,9 +162,9 @@ void ParticleSystem::Pause()
 {
 	m_playing = false;
 }
+//TODO: Make sure particles aren't rendered when dead. (Priority)
 
-
-void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData* part, glm::vec3 campos)
+void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemData* part, glm::vec3 campos)
 {
 	if (m_playing)
 	{
@@ -177,154 +177,84 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 			m_currentCD -= dT;
 		}
 
-
 		for (int i = 0; i < m_particleinfo->maxparticles; i++)
 		{
 			//Get a reference to the current particle being processed
 			Particle& p = m_particles.at(i);
 
-			if (m_particleinfo->continuous == true)
+			//If the particle still has "time", it's alive and needs to be updated and moved.
+			if (p.ctime > 0.0f && p.alive == true)
 			{
-				//If the particle still has "time", it's alive and needs to be updated and moved.
-				if (p.ctime > 0.0f && p.alive == true)
+				//If it still has life left, decrease life by dT
+				p.ctime -= dT;
+
+				//How many percent of the particle's lifetime has been travelled
+				float percent = p.ctime / m_particleinfo->lifetime;
+
+				//Increase velocity as time goes on
+				if (directional)
 				{
-					//If it still has life left, decrease life by dT
-					p.ctime -= dT;
-
-					//How many percent of the particle's lifetime has been travelled
-					float percent = p.ctime / m_particleinfo->lifetime;
-
-					//Increase velocity as time goes on
-					if (direction)
-					{
-						m_directions.at(i) = 
-						glm::normalize(
-						glm::vec3
-							(
-							 m_particleinfo->dir.x,
-							-m_particleinfo->dir.y,
-							 m_particleinfo->dir.z
-							));
-						p.vel = m_particleinfo->dir * dT;
-					}
-					else
-					{
-						m_directions.at(i) = p.dir;
-						p.vel = p.dir * dT;
-					}
-
-
-
-
-					//Lastly, add gravity
-					p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
-
-					//Add the velocity to the position
-					p.pos.x -= p.vel.x * m_particleinfo->force;
-					p.pos.y += p.vel.y * m_particleinfo->force;
-					p.pos.z -= p.vel.z * m_particleinfo->force;
-
-
-					p.dist = glm::length(p.pos - campos);
-					m_vertices.at(i) = p.pos;
+					m_directions.at(i) = 
+					glm::normalize(
+					glm::vec3
+						(
+						m_particleinfo->dir.x,
+						-m_particleinfo->dir.y,
+						m_particleinfo->dir.z
+						));
+					p.vel = m_particleinfo->dir * dT;
+				}
+				else
+				{
+					m_directions.at(i) = p.dir;
+					p.vel = p.dir * dT;
 				}
 
-				//If current lifetime is reached and particle still alive,
-				//kill it and reset particle lifetime
-				else if (p.ctime <= 0.0f && p.alive == true)
-				{
-					p.alive = false;
-					p.ctime = m_particleinfo->lifetime;
-					p.pos = m_position;
-					p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
-					p.dist = -1.0f;
 
-					m_vertices.at(i) = p.pos;
-				}
 
-				//If cooldown is reached and particle dead, wake particle
-				else if (m_currentCD <= 0.0f && p.alive == false)
-				{
-					p.alive = true;
-					p.ctime = m_particleinfo->lifetime;
-					p.pos = m_position;
-					p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
-					p.dist = -1.0f;
+				//Lastly, add gravity
+				p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
 
-					m_currentCD = m_particleinfo->rate;
-					m_vertices.at(i) = p.pos;
-				}
+				//Add the velocity to the position
+				p.pos.x -= p.vel.x * m_particleinfo->force;
+				p.pos.y += p.vel.y * m_particleinfo->force;
+				p.pos.z -= p.vel.z * m_particleinfo->force;
+
+
+				p.dist = glm::length(p.pos - campos);
+				m_vertices.at(i) = p.pos;
 			}
 
-			//TODO: When a non-continuous PS has reached end of life,
-			//resize m_particles and m_vertices to 0.
-			//TODO: Clean up Update() so that continuous and non-continuous
-			//is integrated.
-			else if (m_particleinfo->continuous == false)
+			//If current lifetime is reached and particle still alive,
+			//kill it and reset particle lifetime
+			else if (p.ctime <= 0.0f && p.alive == true)
 			{
-				//If the particle has time and is alive, update as usual
-				if (p.ctime > 0.0f && p.alive == true)
+				p.alive = false;
+				if (m_particleinfo->continuous == true)
 				{
-					p.ctime -= dT;
-
-					float percent = p.ctime / m_particleinfo->lifetime;
-
-					if (direction)
-					{
-						m_directions.at(i) =
-							glm::normalize(
-								glm::vec3
-								(
-								 m_particleinfo->dir.x,
-								 -m_particleinfo->dir.y,
-								 m_particleinfo->dir.z
-								));
-						p.vel = m_particleinfo->dir * dT;
-					}
-					else
-					{
-						m_directions.at(i) = p.dir;
-						p.vel = p.dir * dT;
-					}
-
-					//Lastly, add gravity
-					p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
-
-					//Add the velocity to the position
-					p.pos.x -= p.vel.x * m_particleinfo->force;
-					p.pos.y += p.vel.y * m_particleinfo->force;
-					p.pos.z -= p.vel.z * m_particleinfo->force;
-
-
-					p.dist = glm::length(p.pos - campos);
-					m_vertices.at(i) = p.pos;
+					p.ctime = m_particleinfo->lifetime;
 				}
+				p.pos = m_position;
+				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+				p.dist = -1.0f;
 
-				//If the particle doesn't have time left and is alive,
-				//kill it and move it above PS
-				else if (p.ctime <= 0.0f && p.alive == true)
+				m_vertices.at(i) = p.pos;
+			}
+
+			//If cooldown is reached and particle dead, wake particle
+			else if (m_currentCD <= 0.0f && p.alive == false)
+			{
+				p.alive = true;
+				if (m_particleinfo->continuous == true)
 				{
-					p.alive = false;
-
-					p.pos = m_position;
-					p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
-					p.dist = -1.0f;
-
-					m_vertices.at(i) = p.pos;
+					p.ctime = m_particleinfo->lifetime;
 				}
+				p.pos = m_position;
+				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+				p.dist = -1.0f;
 
-				//If the cooldown has been reached and the particle is dead,
-				//wake it up and put it in the origin
-				else if (m_currentCD <= 0.0f && p.alive == false)
-				{
-					p.alive = true;
-					p.pos = m_position;
-					p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
-					p.dist = -1.0f;
-
-					m_currentCD = m_particleinfo->rate;
-					m_vertices.at(i) = p.pos;
-				}
+				m_currentCD = m_particleinfo->rate;
+				m_vertices.at(i) = p.pos;
 			}
 		}
 
