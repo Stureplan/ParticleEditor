@@ -620,9 +620,9 @@ void Render()
 	glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
 	ps->Render();
 
-	glUseProgram(ps_lprogram);
+/*	glUseProgram(ps_lprogram);
 	glUniformMatrix4fv(ps_lMatrixID, 1, GL_FALSE, &VP[0][0]);
-	ps->RenderLightning();
+	ps->RenderLightning();*/
 	//	--- End of PS Object
 
 	// ----------- Render GUI -------- 

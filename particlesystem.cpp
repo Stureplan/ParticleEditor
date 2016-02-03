@@ -59,6 +59,7 @@ void ParticleSystem::Initialize()
 		p.alive = false;
 
 		m_particles.push_back(p);
+		m_directions.push_back(p.dir);
 	}
 
 	m_deadparticles = 0;
@@ -84,6 +85,11 @@ void ParticleSystem::Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
 	vtxpos = glGetAttribLocation(m_shader, "vertex_position");
+
+	glGenBuffers(1, &dirbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, dirbuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_directions.size() * sizeof(glm::vec3), &m_directions[0], GL_STATIC_DRAW);
+	vtxdir = glGetAttribLocation(m_shader, "vertex_direction");
 }
 
 void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
@@ -91,6 +97,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	this->m_particleinfo = particleinfo;
 	this->m_vertices.resize(m_particleinfo->maxparticles);
 	this->m_particles.resize(m_particleinfo->maxparticles);
+	this->m_directions.resize(m_particleinfo->maxparticles);
 
 	//Initiate random gen
 	std::random_device rd;
@@ -114,6 +121,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 
 		m_particles.at(i) = p;
 		m_vertices.at(i) = p.pos;
+		m_directions.at(i) = p.dir;
 	}
 
 	m_deadparticles = 0;
@@ -124,6 +132,11 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
 	vtxpos = glGetAttribLocation(m_shader, "vertex_position");
+
+	glGenBuffers(1, &dirbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, dirbuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_directions.size() * sizeof(glm::vec3), &m_directions[0], GL_STATIC_DRAW);
+	vtxdir = glGetAttribLocation(m_shader, "vertex_direction");
 }
 
 void ParticleSystem::Retexture(TextureData* textureinfo)
@@ -179,12 +192,14 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 				//Increase velocity as time goes on
 				if (direction)
 				{
+					m_directions.at(i) = m_particleinfo->dir;
 					p.vel.x = m_particleinfo->dir.x * dT;
 					p.vel.y = m_particleinfo->dir.y * dT;
 					p.vel.z = m_particleinfo->dir.z * dT;
 				}
 				else
 				{
+					m_directions.at(i) = p.dir;
 					p.vel = p.dir * dT;
 				}
 
@@ -300,10 +315,11 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 			}
 		}
 		
+		//p.dir = glm::normalize(p.dir);
+		//m_directions.at(i) = p.dir;
 		
 	}
 	
-
 	//std::sort(&m_particles[0], &m_particles[m_particleinfo.maxparticles-1]);
 }
 
@@ -321,11 +337,18 @@ void ParticleSystem::Render()
 	glEnableVertexAttribArray(vtxpos);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(vtxpos, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+	glVertexAttribPointer(vtxpos, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*) 0);
+
+	glEnableVertexAttribArray(vtxdir);
+	glBindBuffer(GL_ARRAY_BUFFER, dirbuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_directions.size() * sizeof(glm::vec3), &m_directions[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(vtxdir, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (const GLvoid*) 0);
+
 
 	glDrawArrays(GL_POINTS, 0, m_vertices.size());
 
 	glDisableVertexAttribArray(vtxpos);
+	glDisableVertexAttribArray(vtxdir);
 }
 
 void ParticleSystem::RenderLightning()
@@ -341,8 +364,6 @@ void ParticleSystem::RenderLightning()
 	
 	std::uniform_real_distribution<float> distf(1.0f, 5.0f);
 	glLineWidth(distf(mt));
-
-
 
 	glDrawArrays(GL_LINE_STRIP, 0, m_vertices.size());
 	

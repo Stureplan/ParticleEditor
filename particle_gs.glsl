@@ -3,6 +3,8 @@
 layout (points) in;
 layout (triangle_strip, max_vertices=4) out;
 
+in vec3 dir_geom[];
+
 uniform mat4 MVP;
 uniform vec3 cam;
 uniform vec2 size;
@@ -13,7 +15,8 @@ void main()
 {
 	vec3 pos = gl_in[0].gl_Position.xyz;
 	vec3 cam_normal = normalize(cam - pos);
-	vec3 up = vec3(0.0f, 1.0f, 0.0f);
+	//vec3 up = vec3(0.0f, 1.0f, 0.0f);
+	vec3 up = dir_geom[0];
 	vec3 right = cross(cam_normal, up);
 
 	up = up * size.y;
