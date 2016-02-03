@@ -278,6 +278,18 @@ void TW_CALL Rebuild(void *clientData)
 	ps->Rebuild(&temp);
 }
 
+void TW_CALL PausePlay(void* clientData)
+{
+	if (ps->GetPlaying() == true)
+	{
+		ps->Pause();
+	}
+	else
+	{
+		ps->Play();
+	}
+}
+
 void InitializeGUI()
 {
 	CURRENT_LABEL = texturenames.at (CURRENT_TEXTURE);
@@ -323,6 +335,7 @@ void InitializeGUI()
 	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
 	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
+	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' ");
 
 
 	SetLabel ();
@@ -620,9 +633,10 @@ void Render()
 	glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
 	ps->Render();
 
-/*	glUseProgram(ps_lprogram);
-	glUniformMatrix4fv(ps_lMatrixID, 1, GL_FALSE, &VP[0][0]);
-	ps->RenderLightning();*/
+	//Enable this and comment out ps->Render() to render lightning between points.
+	//glUseProgram(ps_lprogram);
+	//glUniformMatrix4fv(ps_lMatrixID, 1, GL_FALSE, &VP[0][0]);
+	//ps->RenderLightning();
 	//	--- End of PS Object
 
 	// ----------- Render GUI -------- 

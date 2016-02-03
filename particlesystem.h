@@ -33,10 +33,10 @@ public:
 	glm::mat4 GetModel();
 	ParticleSystemData* GetPSData();
 	TextureData* GetTextureData();
-	float GetLifetime();
-	
-	void Shutdown();
+	bool GetPlaying();
+
 	void Play();
+	void Pause();
 
 private:
 	GLuint texture;
@@ -59,6 +59,8 @@ private:
 	float m_currentCD;
 	bool m_continuous;
 	int m_deadparticles;
+
+	bool m_playing;
 
 	glm::mat4 Model;
 	glm::mat4 LookAt = glm::mat4(1.0f);
