@@ -137,12 +137,8 @@ void TW_CALL Export(void *clientData)
 	std::string filename(ws.begin(), ws.end());
 	std::vector<std::string> filelist = ListFiles("Exports/*.ps");
 
-	if (filename.size() == 0)
-	{
-		return;
-	}
+	if (filename.size() == 0) {	return;	}
 	filename.append(".ps");
-
 
 	//Checks if the filename user wrote is something that already exists
 	for (int i = 0; i < filelist.size(); i++)
@@ -152,8 +148,17 @@ void TW_CALL Export(void *clientData)
 
 		if (filename == loop)
 		{
-			MessageBox(NULL, L"Filename already exists! Export canceled.", L"Error", MB_OK);
-			return;
+			int msg = MessageBox(
+				NULL, 
+				L"Filename already exists! Do you want to replace it?", 
+				L"Error", 
+				MB_ICONWARNING | MB_YESNO);
+			
+			if (msg == IDNO)
+			{
+				return;
+			}
+
 		}
 
 	}
