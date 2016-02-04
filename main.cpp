@@ -151,7 +151,7 @@ void TW_CALL Export(void *clientData)
 
 		if (filename == loop)
 		{
-			MessageBox(NULL, L"Filename already exists! Operation canceled, agent.", L"Error!", MB_OK);
+			MessageBox(NULL, L"Filename already exists! Export canceled.", L"Error", MB_OK);
 			return;
 		}
 
@@ -174,12 +174,12 @@ void TW_CALL Export(void *clientData)
 	amount = ps_temp->maxparticles - ps->GetActiveParticles();
 	result = (float)amount / (float)ps_temp->maxparticles;
 
-	if (result > 0.15f)
+	if (result > 0.3f)
 	{
 		int msg = MessageBox(
 			NULL, 
 			L"Your active particle count is way lower than your allocated amount of particles. Do you want to continue exporting?", 
-			L"Warning!", 
+			L"Warning", 
 			MB_ICONWARNING | MB_YESNO);
 
 		if (msg == IDNO)
