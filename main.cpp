@@ -74,7 +74,7 @@ glm::vec2 FakeCurrentScale = glm::vec2 (1.0f, 1.0f);
 int			CURRENT_FPS = 0;
 int			CURRENT_TEXTURE = 0;
 int			CURRENT_VTXCOUNT = 0;
-int			CURRENT_UNUSED = 0;
+int			CURRENT_ACTIVE = 0;
 float		CURRENT_FORCE = 1.0f;
 float		CURRENT_GRAVITY = 0.0f;
 std::string CURRENT_LABEL;
@@ -319,7 +319,7 @@ void InitializeGUI()
 	TwDefine(" Controls fontresizable=false");
 
 	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_VTXCOUNT, "label='Max Particles:' ");
-	TwAddVarRO(BarGUI, "Unused", TW_TYPE_INT16, &CURRENT_UNUSED, "label='Unused Particles:' ");
+	TwAddVarRO(BarGUI, "Unused", TW_TYPE_INT16, &CURRENT_ACTIVE, "label='Active Particles:' ");
 	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=5.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
@@ -346,7 +346,7 @@ void InitializeGUI()
 
 void InitializeCamera ()
 {
-	camera.Initialize (glm::vec3(0.0f, 1.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f), width, height);
+	camera.Initialize (glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, -1.0f), width, height);
 	View	   = camera.GetView ();
 	Projection = camera.GetProj ();
 	Ortho	   = camera.GetOrtho ();
@@ -542,6 +542,8 @@ void Update (double deltaTime)
 		press = false;
 	}
 
+	CURRENT_ROT = glm::clamp(CURRENT_ROT, -1.0f, 1.0f);
+
 	arrow->Rotate(glm::vec3(CURRENT_ROT.x, -CURRENT_ROT.y, CURRENT_ROT.z));
 	
 	sphere		->Update();
@@ -552,7 +554,7 @@ void Update (double deltaTime)
 	CameraPos = camera.GetPos();
 
 
-	CURRENT_ROT = glm::clamp(CURRENT_ROT, -1.0f, 1.0f);
+
 
 	//Update temp with new values
 	temp.dir		= CURRENT_ROT;
@@ -567,7 +569,7 @@ void Update (double deltaTime)
 	//TODO: Callback function when changing particle count
 	//TODO: Helper function file.h
 	ps->Update(deltaTime, arrow->IsActive(), &temp, camera.GetPos());
-	CURRENT_UNUSED = ps->GetUnusedParticles();
+	CURRENT_ACTIVE = ps->GetActiveParticles();
 
 	glm::vec3 pos = camera.GetPos();
 	glm::vec3 dir = pos;

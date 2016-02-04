@@ -24,6 +24,8 @@ void Camera::Initialize (glm::vec3 pos, glm::vec3 dir, int width, int height)
 		(float)height,
 		0.0f
 	);
+
+	m_position = pos;
 }
 
 void Camera::UpdateView ()
