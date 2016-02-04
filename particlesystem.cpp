@@ -51,6 +51,8 @@ void ParticleSystem::Initialize()
 
 		m_particles.push_back(p);
 		m_directions.push_back(p.dir);
+
+		// Add the initial data for each particle to the vectors/lists we'll export later
 	}
 
 	m_deadparticles = 0;
@@ -288,11 +290,11 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 					p.pos.y += p.vel.y * m_particleinfo->force;
 					p.pos.z -= p.vel.z * m_particleinfo->force;
 
-
-
-
 					p.dist = glm::length(p.pos - campos);
 					m_vertices.at(i) = p.pos;
+
+					//Add position, direction and alive-state/intensity to a vector/list
+
 				}
 
 				//If the particle doesn't have time left and is alive,
@@ -306,6 +308,8 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 					p.dist = -1.0f;
 
 					m_vertices.at(i) = p.pos;
+
+					//IF we the System-time != 0, keep saving position, direction and alive-state/intensity in a vector/list
 				}
 
 				//If the cooldown has been reached and the particle is dead,
@@ -319,6 +323,8 @@ void ParticleSystem::Update(double deltaTime, bool direction, ParticleSystemData
 
 					m_currentCD = m_particleinfo->rate;
 					m_vertices.at(i) = p.pos;
+
+					//IF we the System-time != 0, keep saving position, direction and alive-state/intensity in a vector/list
 				}
 			}
 		}
@@ -384,6 +390,16 @@ glm::mat4 ParticleSystem::GetModel()
 ParticleSystemData* ParticleSystem::GetPSData()
 {
 	return this->m_particleinfo;
+
+	//ExportSystemData* expSystem;
+	//expSystem->headerSize = sizeof(float) * 2 + sizeof(int) * 3 + sizeof(bool); // + sizeof(char) * textureNameSize
+	//expSystem->frames = 0; //m_particleinfo->lifetime * k = frames?
+	//expSystem->quadSize = glm::vec2(m_particleinfo->width, m_particleinfo->height);
+	//expSystem->textureName = this->m_textureinfo->texturename;
+	//expSystem->continuous = m_particleinfo->continuous;
+	//expSystem->nrOfParticles = m_particleinfo->maxparticles;
+	//expSystem->particleSize = sizeof(float) * 7 * expSystem->nrOfParticles;
+	////expSystem->particles = "magic Particle Array that have data for all frames";
 }
 
 TextureData* ParticleSystem::GetTextureData()
