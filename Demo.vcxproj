@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="functions.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="particlesystem.h" />

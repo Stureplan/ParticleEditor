@@ -8,7 +8,6 @@
 #include <Windows.h>
 #include <ctime>
 #include <sstream>
-#include <iomanip> 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -18,12 +17,13 @@
 #include <glfw3.h>
 
 #include <fstream>
-#include <iostream>
+
 #include <winsock.h>
 
 
 //Additional includes
 #include "structs.h"
+#include "functions.h"
 
 //Custom classes
 #include "camera.h"
@@ -108,84 +108,9 @@ float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
 float MoveSpeed = 5.0f;
 
-bool PNGSize(const char *fileName, unsigned int &x, unsigned int &y) 
-{
-	std::ifstream file (fileName, std::ios_base::binary | std::ios_base::in);
-
-	if (!file.is_open () || !file) 
-	{
-		file.close ();
-		return false;
-	}
-
-	file.seekg (8, std::ios_base::cur);
-	file.seekg (4, std::ios_base::cur);
-	file.seekg (4, std::ios_base::cur);
-
-	__int32 width, height;
-
-	file.read ((char*) &width, 4);
-	file.read ((char*) &height, 4);
-
-	x = ntohl(width);
-	y = ntohl(height);
-
-	file.close ();
-
-	return true;
-}
-
 void SetFPS(int fps)
 {
 	CURRENT_FPS = fps;
-}
-
-std::string WCHAR_TO_STRING (const wchar_t *wchar)
-{
-	std::string str = "";
-	int index = 0;
-	while (wchar[index] != 0)
-	{
-		str += (char) wchar[index];
-		++index;
-	}
-	return str;
-}
-
-wchar_t* STRING_TO_WCHAR (const std::string &str)
-{
-	wchar_t wchar[260];
-	int index = 0;
-	while (index < str.size ())
-	{
-		wchar[index] = (wchar_t) str[index];
-		++index;
-	}
-	wchar[index] = 0;
-	return wchar;
-}
-
-std::vector<std::string> ListFiles(std::string directoryName)
-{
-	WIN32_FIND_DATA FindFileData;
-	wchar_t * FileName = STRING_TO_WCHAR (directoryName);
-	HANDLE hFind = FindFirstFile (FileName, &FindFileData);
-
-	std::vector<std::string> listFileNames;
-	listFileNames.push_back (WCHAR_TO_STRING (FindFileData.cFileName));
-
-	while (FindNextFile (hFind, &FindFileData))
-	{
-		listFileNames.push_back (WCHAR_TO_STRING (FindFileData.cFileName));
-	}
-
-	//Insert "Data/Textures" at the beginning of each string
-	for (int i = 0; i < listFileNames.size (); i++)
-	{
-		listFileNames[i].insert (0, std::string ("Data/Textures/"));
-	}
-
-	return listFileNames;
 }
 
 void SetLabel()
@@ -195,11 +120,7 @@ void SetLabel()
 
 	//Set label name to first part of the label
 	CURRENT_LABEL = "label='";
-
-	//Add texturename
 	CURRENT_LABEL.append (temp);
-
-	//Add finishing '
 	CURRENT_LABEL.append ("'");
 
 	std::string tw;
@@ -216,9 +137,6 @@ void TW_CALL Export(void *clientData)
 	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
 	std::wstring ws(buf);
 	std::string filename(ws.begin(), ws.end());
-
-
-
 	std::vector<std::string> filelist = ListFiles("Exports/*.ps");
 
 	if (filename.size() == 0)
@@ -360,29 +278,18 @@ void CreateShaders()
 	ps_lprogram = LoadShaders("particle_lvs.glsl", "none", "particle_lfs.glsl");
 
 	MatrixID = glGetUniformLocation (program, "MVP");
-	
 	ps_MatrixID = glGetUniformLocation(ps_program, "MVP");
 	ps_CamID = glGetUniformLocation(ps_program, "cam");
 	ps_SizeID = glGetUniformLocation(ps_program, "size");
-
 	ps_lMatrixID = glGetUniformLocation(ps_lprogram, "MVP");
 
 	glClearColor (0.2f, 0.2f, 0.2f, 0.0f);
-}
-
-void CompileShaderError(GLuint* _shader)
-{
-	GLint success = 0;
 }
 
 void CreateObjects()
 {
 	//Lists all files inside of Data folder with the .png extension in a std::vector
 	texturenames = ListFiles("Data/Textures/*.png");
-
-	//With this power, I can use the std::vector to loop through all textures and
-	//automatically set their name and dimensions in each TextureData.
-	//Just remember to add "Data/" before texture name in the TextureData.
 
 	for (int i = 0; i < texturenames.size (); i++)
 	{
@@ -410,12 +317,6 @@ void CreateObjects()
 	wire_tex.texturename = "Data/Textures/wireframe.png";
 	wire_tex.width = 32;
 	wire_tex.height = 32;
-
-	TextureData part_tex;
-	part_tex.texturename = "Data/Textures/particle.png";
-	part_tex.width = 32;
-	part_tex.height = 32;
-
 
 	ParticleSystemData part;
 	part.width = 0.2f;
@@ -462,7 +363,6 @@ void SetViewport(HWND hwnd)
 {
 	windowReference = hwnd;
 	glViewport(0, 0, width, height);
-	
 }
 
 glm::vec3 GetInputDir (double deltaTime)
@@ -552,9 +452,6 @@ void Update (double deltaTime)
 
 	//Update shader variables
 	CameraPos = camera.GetPos();
-
-
-
 
 	//Update temp with new values
 	temp.dir		= CURRENT_ROT;
@@ -707,7 +604,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 				int WindowFPS = (int)1 / dt;
 				std::wstringstream wss;
 				
-				wss << std::setprecision(3) << "FPS: " << CURRENT_FPS;
+				wss << "FPS: " << CURRENT_FPS;
 				
 				SetWindowText(wndHandle, wss.str().c_str());
 
