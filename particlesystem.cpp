@@ -353,6 +353,16 @@ glm::mat4 ParticleSystem::GetModel()
 ParticleSystemData* ParticleSystem::GetPSData()
 {
 	return this->m_particleinfo;
+
+	//ExportSystemData* expSystem;
+	//expSystem->headerSize = sizeof(float) * 2 + sizeof(int) * 3 + sizeof(bool); // + sizeof(char) * textureNameSize
+	//expSystem->frames = 0; //m_particleinfo->lifetime * k = frames?
+	//expSystem->quadSize = glm::vec2(m_particleinfo->width, m_particleinfo->height);
+	//expSystem->textureName = this->m_textureinfo->texturename;
+	//expSystem->continuous = m_particleinfo->continuous;
+	//expSystem->nrOfParticles = m_particleinfo->maxparticles;
+	//expSystem->particleSize = sizeof(float) * 7 * expSystem->nrOfParticles;
+	////expSystem->particles = "magic Particle Array that have data for all frames";
 }
 
 TextureData* ParticleSystem::GetTextureData()
