@@ -33,13 +33,13 @@ void main()
 	//VTX 2
 	cPos = pos + right - up;
 	gl_Position = MVP * vec4(cPos, 1.0f);
-	uv_frag = vec2(0.0f, 1.0f);
+	uv_frag = vec2(1.0f, 0.0f);
 	EmitVertex();
 
 	//VTX 3
 	cPos = pos + up - right;
 	gl_Position = MVP * vec4(cPos, 1.0f);
-	uv_frag = vec2(1.0f, 0.0f);
+	uv_frag = vec2(0.0f, 1.0f);
 	EmitVertex();
 
 	//VTX 4
