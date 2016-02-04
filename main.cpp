@@ -71,6 +71,7 @@ glm::vec2 FakeCurrentScale = glm::vec2 (1.0f, 1.0f);
 int			CURRENT_FPS = 0;
 int			CURRENT_TEXTURE = 0;
 int			CURRENT_VTXCOUNT = 0;
+int			CURRENT_VTXCOUNT_DIFF = 0;
 int			CURRENT_ACTIVE = 0;
 float		CURRENT_FORCE = 0.0f;
 float		CURRENT_GRAVITY = 0.0f;
@@ -279,7 +280,6 @@ void InitializeGUI()
 	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
 	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
-
 	SetLabel ();
 }
 
@@ -353,6 +353,7 @@ void CreateObjects()
 	CURRENT_FORCE = temp.force;
 	CURRENT_GRAVITY = temp.gravity;
 	CURRENT_VTXCOUNT = temp.maxparticles;
+	CURRENT_VTXCOUNT_DIFF = temp.maxparticles;
 	CURRENT_RATE = temp.rate;
 	CURRENT_LIFETIME = temp.lifetime;
 
@@ -477,8 +478,16 @@ void Update (double deltaTime)
 	temp.lifetime	= CURRENT_LIFETIME;
 	temp.continuous = CURRENT_REPEAT;
 
+	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
+	{
+		Rebuild((void*)0);
+	}
+
+	CURRENT_VTXCOUNT_DIFF = CURRENT_VTXCOUNT;
+
+
+
 	//TODO: Callback function when changing particle count
-	//TODO: Helper function file.h
 	ps->Update(deltaTime, arrow->IsActive(), &temp, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();
 
