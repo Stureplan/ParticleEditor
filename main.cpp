@@ -74,6 +74,7 @@ glm::vec2 FakeCurrentScale = glm::vec2 (1.0f, 1.0f);
 int			CURRENT_FPS = 0;
 int			CURRENT_TEXTURE = 0;
 int			CURRENT_VTXCOUNT = 0;
+int			CURRENT_UNUSED = 0;
 float		CURRENT_FORCE = 1.0f;
 float		CURRENT_GRAVITY = 0.0f;
 std::string CURRENT_LABEL;
@@ -318,6 +319,7 @@ void InitializeGUI()
 	TwDefine(" Controls fontresizable=false");
 
 	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_VTXCOUNT, "label='Max Particles:' ");
+	TwAddVarRO(BarGUI, "Unused", TW_TYPE_INT16, &CURRENT_UNUSED, "label='Unused Particles:' ");
 	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=5.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
@@ -332,6 +334,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
+	
 	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
 	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
@@ -440,7 +443,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.8f, 1.0f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.8f, 0.6f, 0.0f));
 
 	//Initial rotation for arrow
 	glm::vec3 dir = glm::vec3(cos(verticalAngle) * sin(horizontalAngle),
@@ -564,6 +567,7 @@ void Update (double deltaTime)
 	//TODO: Callback function when changing particle count
 	//TODO: Helper function file.h
 	ps->Update(deltaTime, arrow->IsActive(), &temp, camera.GetPos());
+	CURRENT_UNUSED = ps->GetUnusedParticles();
 
 	glm::vec3 pos = camera.GetPos();
 	glm::vec3 dir = pos;

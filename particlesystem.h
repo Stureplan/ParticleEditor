@@ -33,6 +33,7 @@ public:
 	glm::mat4 GetModel();
 	ParticleSystemData* GetPSData();
 	TextureData* GetTextureData();
+	int GetUnusedParticles();
 	bool IsPlaying();
 
 	void Play();
@@ -59,6 +60,7 @@ private:
 	float m_currentCD;
 	bool m_continuous;
 	int m_deadparticles;
+	int m_unusedparticles;
 
 	bool m_playing;
 

@@ -55,7 +55,7 @@ void ParticleSystem::Initialize()
 	}
 
 	m_deadparticles = 0;
-
+	m_unusedparticles = 0;
 	m_playing = true;
 
 	//Load texture
@@ -120,6 +120,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	}
 
 	m_deadparticles = 0;
+	m_unusedparticles = 0;
 
 	Model = glm::mat4(1.0f);
 
@@ -170,6 +171,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 {
 	if (m_playing)
 	{
+		m_unusedparticles = 0;
 		float dT = (float)deltaTime;
 
 		m_particleinfo = part;
@@ -249,6 +251,8 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 			{
 				if (m_particleinfo->continuous)
 				{
+					m_unusedparticles--;
+
 					p.alive = true;
 					p.ctime = m_particleinfo->lifetime;
 					p.pos = m_position;
@@ -263,6 +267,8 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				{
 					if (p.firsloop == true)
 					{
+						m_unusedparticles--;
+
 						p.alive = true;
 						p.ctime = m_particleinfo->lifetime;
 						p.pos = m_position;
@@ -275,10 +281,15 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 					}
 				}
 
+
 			}
 
 			if (p.alive == false)
 			{
+				if (m_particleinfo->continuous)
+				{
+					m_unusedparticles++;
+				}
 				p.pos = glm::vec3(0.0f, 2.0f, 0.0f);
 				p.vel = glm::vec3(0, 0, 0);
 
@@ -352,6 +363,11 @@ ParticleSystemData* ParticleSystem::GetPSData()
 TextureData* ParticleSystem::GetTextureData()
 {
 	return this->m_textureinfo;
+}
+
+int ParticleSystem::GetUnusedParticles()
+{
+	return this->m_unusedparticles;
 }
 
 bool ParticleSystem::IsPlaying()
