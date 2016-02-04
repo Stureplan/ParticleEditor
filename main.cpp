@@ -72,10 +72,10 @@ int			CURRENT_FPS = 0;
 int			CURRENT_TEXTURE = 0;
 int			CURRENT_VTXCOUNT = 0;
 int			CURRENT_ACTIVE = 0;
-float		CURRENT_FORCE = 1.0f;
+float		CURRENT_FORCE = 0.0f;
 float		CURRENT_GRAVITY = 0.0f;
 std::string CURRENT_LABEL;
-float		CURRENT_RATE = 0.1f;
+float		CURRENT_RATE = 0.0f;
 float		CURRENT_LIFETIME = 1.0f;
 bool		CURRENT_REPEAT = true;
 bool		RENDER_DIR = true;
@@ -142,6 +142,7 @@ void TW_CALL Export(void *clientData)
 	}
 	filename.append(".ps");
 
+
 	//Checks if the filename user wrote is something that already exists
 	for (int i = 0; i < filelist.size(); i++)
 	{
@@ -164,6 +165,29 @@ void TW_CALL Export(void *clientData)
 
 	tex_temp = ps->GetTextureData();
 	ps_temp	 = ps->GetPSData();
+
+	//If the active particles is way different from maxparticles, give user a warning
+	//and return from filesaving
+	float amount;
+	float result;
+
+	amount = ps_temp->maxparticles - ps->GetActiveParticles();
+	result = (float)amount / (float)ps_temp->maxparticles;
+
+	if (result > 0.15f)
+	{
+		int msg = MessageBox(
+			NULL, 
+			L"Your active particle count is way lower than your allocated amount of particles. Do you want to continue exporting?", 
+			L"Warning!", 
+			MB_ICONWARNING | MB_YESNO);
+
+		if (msg == IDNO)
+		{
+			return;
+		}
+	}
+
 
 	//Opens file
 	std::ofstream file;
@@ -315,45 +339,38 @@ void CreateObjects()
 	wire_tex.width = 32;
 	wire_tex.height = 32;
 
-	ParticleSystemData part;
-	part.width = 0.2f;
-	part.height = 0.2f;
-	part.lifetime = 1.0f;
-	part.maxparticles = 100;
-	part.rate = 0.0f;
-	part.force = 5.0f;
-	part.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
-	part.continuous = true;
+	temp.width = 0.2f;
+	temp.height = 0.2f;
+	temp.lifetime = 1.0f;
+	temp.maxparticles = 100;
+	temp.rate = 0.1f;
+	temp.force = 5.0f;
+	temp.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
+	temp.continuous = true;
 
-	temp = part;
-
-	CURRENT_SCALE.x = (float)part.width;
-	CURRENT_SCALE.y = (float)part.height;
-	CURRENT_GRAVITY = part.gravity;
-	CURRENT_VTXCOUNT = part.maxparticles;
-	CURRENT_LIFETIME = part.lifetime;
+	CURRENT_SCALE.x = (float)temp.width;
+	CURRENT_SCALE.y = (float)temp.height;
+	CURRENT_FORCE = temp.force;
+	CURRENT_GRAVITY = temp.gravity;
+	CURRENT_VTXCOUNT = temp.maxparticles;
+	CURRENT_RATE = temp.rate;
+	CURRENT_LIFETIME = temp.lifetime;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
 	plane	= new Object("Data/OBJ/plane.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 
 	ui_particle = new Object("Data/OBJ/particle.obj", &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), program, true);
-	ps			= new ParticleSystem(&part,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
+	ps			= new ParticleSystem(&temp,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
 	ui_particle->Translate (glm::vec3 (5.8f, 0.6f, 0.0f));
 
-	//Initial rotation for arrow
-	glm::vec3 dir = glm::vec3(cos(verticalAngle) * sin(horizontalAngle),
-		sin(verticalAngle),
-		cos(verticalAngle) * cos(horizontalAngle));
-	dir = glm::normalize(dir);
-
 	//Initial rot (direction) values
-	CURRENT_ROT = glm::vec3(dir.x, dir.y, dir.z);
+	CURRENT_ROT = glm::vec3(1.0f, 0.0f, 0.0f);
 
 	//Rotate arrow once with direction
-	arrow->Rotate(dir);
+	arrow->Rotate(CURRENT_ROT);
 }
 
 void SetViewport(HWND hwnd)

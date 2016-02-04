@@ -285,7 +285,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				{
 					m_activeparticles--;
 				}
-				p.pos = glm::vec3(0.0f, 2.0f, 0.0f);
+				p.pos = glm::vec3(0.0f, -1000.0f, 0.0f);
 				p.vel = glm::vec3(0, 0, 0);
 
 				m_vertices.at(i) = p.pos;
