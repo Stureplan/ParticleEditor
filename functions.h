@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <winsock.h>
 
 bool PNGSize(const char* fileName, unsigned int &x, unsigned int &y)
 {

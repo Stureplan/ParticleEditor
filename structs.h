@@ -33,6 +33,7 @@ struct Particle
 {
 	glm::vec3 pos;
 	glm::vec3 dir;
+	glm::vec3 rdir;
 	glm::vec3 vel;
 	float ctime;
 	float dist;

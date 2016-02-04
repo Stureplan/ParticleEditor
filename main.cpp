@@ -15,10 +15,7 @@
 #include <gl/GL.h>
 #include <AntTweakBar.h>
 #include <glfw3.h>
-
 #include <fstream>
-
-#include <winsock.h>
 
 
 //Additional includes

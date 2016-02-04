@@ -43,7 +43,7 @@ void ParticleSystem::Initialize()
 		float x = dist(mt);
 		float y = dist(mt);
 		float z = dist(mt);
-		p.dir = glm::vec3(x, y, z);
+		p.rdir = glm::vec3(x, y, z);
 		p.ctime = m_particleinfo->lifetime;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
@@ -51,7 +51,7 @@ void ParticleSystem::Initialize()
 		p.firsloop = true;
 
 		m_particles.push_back(p);
-		m_directions.push_back(p.dir);
+		m_directions.push_back(p.rdir);
 	}
 
 	m_deadparticles = 0;
@@ -105,7 +105,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 		float x = dist(mt);
 		float y = dist(mt);
 		float z = dist(mt);
-		p.dir = glm::vec3(x, y, z);
+		p.rdir = glm::vec3(x, y, z);
 		p.ctime = m_particleinfo->lifetime;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
@@ -115,7 +115,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 
 		m_particles.at(i) = p;
 		m_vertices.at(i) = p.pos;
-		m_directions.at(i) = p.dir;
+		m_directions.at(i) = p.rdir;
 	}
 
 	m_deadparticles = 0;
@@ -196,23 +196,18 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				//Increase velocity as time goes on
 				if (directional)
 				{
-					m_directions.at(i) = 
-					glm::normalize(
-					glm::vec3
-						(
-						m_particleinfo->dir.x,
-						-m_particleinfo->dir.y,
-						m_particleinfo->dir.z
-						));
+					m_directions.at(i) = glm::normalize(glm::vec3(p.dir));
 					p.vel = m_particleinfo->dir * dT;
 				}
 				else
 				{
-					m_directions.at(i) = p.dir;
-					p.vel = p.dir * dT;
+					m_directions.at(i) = glm::normalize(glm::vec3(p.dir));
+
+					//Velocity is correct
+					p.vel = p.rdir * dT;
 				}
-
-
+				//Separate container for random dir
+				glm::vec3 oldPos = p.pos;
 
 				//Lastly, add gravity
 				p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
@@ -221,6 +216,8 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				p.pos.x -= p.vel.x * m_particleinfo->force;
 				p.pos.y += p.vel.y * m_particleinfo->force;
 				p.pos.z -= p.vel.z * m_particleinfo->force;
+				
+				p.dir = oldPos - p.pos;
 
 
 				p.dist = glm::length(p.pos - campos);
