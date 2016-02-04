@@ -48,6 +48,7 @@ void ParticleSystem::Initialize()
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
 		p.alive = false;
+		p.firsloop = true;
 
 		m_particles.push_back(p);
 		m_directions.push_back(p.dir);
@@ -110,6 +111,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		p.dist = -1.0f;
 		p.alive = false;
+		p.firsloop = true;
 		m_currentCD = m_particleinfo->rate;
 
 		m_particles.at(i) = p;
@@ -230,6 +232,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 			else if (p.ctime <= 0.0f && p.alive == true)
 			{
 				p.alive = false;
+				p.firsloop = false;
 				if (m_particleinfo->continuous == true)
 				{
 					p.ctime = m_particleinfo->lifetime;
@@ -244,23 +247,41 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 			//If cooldown is reached and particle dead, wake particle
 			else if (m_currentCD <= 0.0f && p.alive == false)
 			{
-				p.alive = true;
-				if (m_particleinfo->continuous == true)
+				if (m_particleinfo->continuous)
 				{
+					p.alive = true;
 					p.ctime = m_particleinfo->lifetime;
-				}
-				p.pos = m_position;
-				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
-				p.dist = -1.0f;
+					p.pos = m_position;
+					p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+					p.dist = -1.0f;
 
-				m_currentCD = m_particleinfo->rate;
-				m_vertices.at(i) = p.pos;
+					m_currentCD = m_particleinfo->rate;
+
+					m_vertices.at(i) = p.pos;
+				}
+				else
+				{
+					if (p.firsloop == true)
+					{
+						p.alive = true;
+						p.ctime = m_particleinfo->lifetime;
+						p.pos = m_position;
+						p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+						p.dist = -1.0f;
+
+						m_currentCD = m_particleinfo->rate;
+
+						m_vertices.at(i) = p.pos;
+					}
+				}
+
 			}
 
 			if (p.alive == false)
 			{
-				p.pos = glm::vec3(0.0f, -1000.0f, 0.0f);
+				p.pos = glm::vec3(0.0f, 2.0f, 0.0f);
 				p.vel = glm::vec3(0, 0, 0);
+
 				m_vertices.at(i) = p.pos;
 			}
 		}

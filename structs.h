@@ -37,6 +37,7 @@ struct Particle
 	float ctime;
 	float dist;
 	bool alive;
+	bool firsloop;
 };
 
 
