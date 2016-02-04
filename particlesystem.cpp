@@ -177,7 +177,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 			m_currentCD -= dT;
 		}
 
-		for (int i = 0; i < m_particleinfo->maxparticles; i++)
+		for (int i = 0; i < m_particles.size(); i++)
 		{
 			//Get a reference to the current particle being processed
 			Particle& p = m_particles.at(i);
@@ -224,7 +224,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				p.dist = glm::length(p.pos - campos);
 				m_vertices.at(i) = p.pos;
 			}
-
+ 
 			//If current lifetime is reached and particle still alive,
 			//kill it and reset particle lifetime
 			else if (p.ctime <= 0.0f && p.alive == true)
@@ -254,6 +254,13 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				p.dist = -1.0f;
 
 				m_currentCD = m_particleinfo->rate;
+				m_vertices.at(i) = p.pos;
+			}
+
+			if (p.alive == false)
+			{
+				p.pos = glm::vec3(0.0f, -1000.0f, 0.0f);
+				p.vel = glm::vec3(0, 0, 0);
 				m_vertices.at(i) = p.pos;
 			}
 		}
