@@ -30,8 +30,6 @@ void ParticleSystem::Initialize()
 	std::mt19937 mt(rd());
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
-
-
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
 	{
@@ -237,8 +235,10 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				p.pos = m_position;
 				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 				p.dist = -1.0f;
+				p.dir = m_particleinfo->dir;
 
 				m_vertices.at(i) = p.pos;
+				m_directions.at(i) = p.dir;
 			}
 
 			//If cooldown is reached and particle dead, wake particle

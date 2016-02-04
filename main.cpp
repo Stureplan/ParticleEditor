@@ -457,6 +457,13 @@ void Update (double deltaTime)
 		press = false;
 	}
 
+	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
+	{
+		Rebuild((void*)0);
+	}
+
+	CURRENT_VTXCOUNT_DIFF = CURRENT_VTXCOUNT;
+
 	CURRENT_ROT = glm::clamp(CURRENT_ROT, -1.0f, 1.0f);
 
 	arrow->Rotate(glm::vec3(CURRENT_ROT.x, -CURRENT_ROT.y, CURRENT_ROT.z));
@@ -478,16 +485,6 @@ void Update (double deltaTime)
 	temp.lifetime	= CURRENT_LIFETIME;
 	temp.continuous = CURRENT_REPEAT;
 
-	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
-	{
-		Rebuild((void*)0);
-	}
-
-	CURRENT_VTXCOUNT_DIFF = CURRENT_VTXCOUNT;
-
-
-
-	//TODO: Callback function when changing particle count
 	ps->Update(deltaTime, arrow->IsActive(), &temp, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();
 
