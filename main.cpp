@@ -131,6 +131,14 @@ void SetLabel()
 
 void TW_CALL Export(void *clientData)
 {
+	//Get info
+	TextureData* tex_temp;
+	ParticleSystemData* ps_temp;
+
+	tex_temp = ps->GetTextureData();
+	ps_temp = ps->GetPSData();
+
+
 	wchar_t buf[100] = { 0 };
 	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
 	std::wstring ws(buf);
@@ -140,37 +148,6 @@ void TW_CALL Export(void *clientData)
 	if (filename.size() == 0) {	return;	}
 	filename.append(".ps");
 
-	//Checks if the filename user wrote is something that already exists
-	for (int i = 0; i < filelist.size(); i++)
-	{
-		std::string loop = filelist[i];
-		loop.erase(0, 14);
-
-		if (filename == loop)
-		{
-			int msg = MessageBox(
-				NULL, 
-				L"Filename already exists! Do you want to replace it?", 
-				L"Error", 
-				MB_ICONWARNING | MB_YESNO);
-			
-			if (msg == IDNO)
-			{
-				return;
-			}
-
-		}
-
-	}
-
-	filename.insert(0, std::string("Exports/"));
-
-	//Get info
-	TextureData* tex_temp;
-	ParticleSystemData* ps_temp;
-
-	tex_temp = ps->GetTextureData();
-	ps_temp	 = ps->GetPSData();
 
 	//If the active particles is way different from maxparticles, give user a warning
 	//and return from filesaving
@@ -183,9 +160,9 @@ void TW_CALL Export(void *clientData)
 	if (result > 0.3f)
 	{
 		int msg = MessageBox(
-			NULL, 
-			L"Your active particle count is way lower than your allocated amount of particles. Do you want to continue exporting?", 
-			L"Warning", 
+			NULL,
+			L"Your active particle count is way lower than your allocated amount of particles. Do you want to continue exporting?",
+			L"Warning",
 			MB_ICONWARNING | MB_YESNO);
 
 		if (msg == IDNO)
@@ -193,6 +170,33 @@ void TW_CALL Export(void *clientData)
 			return;
 		}
 	}
+
+
+
+	//Checks if the filename user wrote is something that already exists
+	for (int i = 0; i < filelist.size(); i++)
+	{
+		std::string loop = filelist[i];
+		loop.erase(0, 14);
+
+		if (filename == loop)
+		{
+			int msg = MessageBox(
+				NULL, 
+				L"Filename already exists. Do you want to replace it?", 
+				L"Warning", 
+				MB_ICONWARNING | MB_YESNO);
+			
+			if (msg == IDNO)
+			{
+				return;
+			}
+
+		}
+
+	}
+
+	filename.insert(0, std::string("Exports/"));
 
 
 	//Opens file
