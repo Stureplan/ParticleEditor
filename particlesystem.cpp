@@ -52,7 +52,6 @@ void ParticleSystem::Initialize()
 		m_directions.push_back(p.rdir);
 	}
 
-	m_deadparticles = 0;
 	m_playing = true;
 
 	//Load texture
@@ -83,6 +82,7 @@ void ParticleSystem::Initialize()
 	vtxdir = glGetAttribLocation(m_shader, "vertex_direction");
 }
 
+
 void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 {	
 	this->m_particleinfo = particleinfo;
@@ -94,7 +94,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	std::random_device rd;
 	std::mt19937 mt(rd());
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
-
+	
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
 	{
@@ -115,8 +115,6 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 		m_vertices.at(i) = p.pos;
 		m_directions.at(i) = p.rdir;
 	}
-
-	m_deadparticles = 0;
 
 	Model = glm::mat4(1.0f);
 
@@ -162,23 +160,6 @@ void ParticleSystem::Pause()
 	m_playing = false;
 }
 
-void ParticleSystem::Restart()
-{
-	for (int i = 0; i < m_particleinfo->maxparticles; i++)
-	{
-		Particle &p = m_particles.at(i);
-		p.pos = m_position;
-		p.ctime = m_particleinfo->lifetime;
-		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
-		p.dist = -1.0f;
-		p.alive = false;
-		p.firsloop = true;
-		m_currentCD = m_particleinfo->emission;
-
-		m_particles.at(i) = p;
-		m_vertices.at(i) = p.pos;
-	}
-}
 //TODO: Make sure particles aren't rendered when dead. (Priority)
 
 void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemData* part, glm::vec3 campos)
@@ -316,15 +297,14 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				{
 					m_activeparticles--;
 				}
+				//TODO: Set pos back to 0 and flag p.intensity to 0
 				p.pos = glm::vec3(0.0f, -1000.0f, 0.0f);
 				p.vel = glm::vec3(0, 0, 0);
 
 				m_vertices.at(i) = p.pos;
 			}
 		}
-
 	}
-
 }
 
 void ParticleSystem::Render()
@@ -386,36 +366,6 @@ ParticleSystemData* ParticleSystem::GetPSData()
 	return this->m_particleinfo;
 }
 
-ExportSystemData* ParticleSystem::GetExportData()
-{
-	ExportSystemData* ex;
-	ExportParticle* particles = new ExportParticle[m_particleinfo->maxparticles];
-	
-	float f = m_particleinfo->lifetime * m_fps;
-	int frames = floor(f);
-
-
-	//* Fill particles with data *
-	//particles[0].pos = &glm::vec3(0.0f, 0.0f, 0.0f);
-	//particles[1].pos = &glm::vec3(1.0f, 1.0f, 1.0f);
-
-
-	ex->headerSize = sizeof(float) * 2 + sizeof(int) * 3 + sizeof(bool); // + sizeof(char) * textureNameSize
-	ex->frames = frames;
-	ex->quadSize = glm::vec2(m_particleinfo->width, m_particleinfo->height);
-	ex->textureName = this->m_textureinfo->texturename;
-	ex->continuous = m_particleinfo->continuous;
-	ex->nrOfParticles = m_particleinfo->maxparticles;
-	ex->particleSize = sizeof(float) * 7 * ex->nrOfParticles;
-	ex->particles = particles;
-
-	//Delete and free after we're done
-	delete[] particles;
-	particles = 0;
-
-
-	return ex;
-}
 
 TextureData* ParticleSystem::GetTextureData()
 {

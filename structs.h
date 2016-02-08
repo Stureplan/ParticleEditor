@@ -43,26 +43,6 @@ struct Particle
 };
 
 
-struct ExportParticle
-{
-	glm::vec3* pos;
-	glm::vec3* dir;
-	float* intensity;
-};
-
-struct ExportSystemData 
-{
-	int headerSize;
-	int frames;
-	glm::vec2 quadSize;
-	const char* textureName;
-	bool continuous;
-	int nrOfParticles;
-	int particleSize;
- 	ExportParticle* particles;
-};
-
-
 #endif
 
 

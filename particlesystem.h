@@ -31,16 +31,14 @@ public:
 	void Render();
 	void RenderLightning();
 
+	void Play();
+	void Pause();
+
 	glm::mat4 GetModel();
 	ParticleSystemData* GetPSData();
-	ExportSystemData* GetExportData();
 	TextureData* GetTextureData();
 	int GetActiveParticles();
 	bool IsPlaying();
-
-	void Play();
-	void Pause();
-	void Restart();
 
 private:
 	GLuint texture;
@@ -62,11 +60,8 @@ private:
 	glm::vec3 m_direction;
 	float m_currentCD;
 	bool m_continuous;
-	int m_deadparticles;
 	int m_activeparticles;
-
 	bool m_playing;
-	int m_fps = 60;
 
 	glm::mat4 Model;
 	glm::mat4 LookAt = glm::mat4(1.0f);

@@ -85,6 +85,8 @@ bool		RENDER_DIR = true;
 bool press = false;
 glm::vec3	CURRENT_ROT;
 
+double dt = 0.0f;
+
 float input_cooldown = 0.3f;
 float input_current = 0.3f;
 
@@ -136,7 +138,6 @@ void TW_CALL Export(void *clientData)
 	//Get info
 	TextureData* tex_temp = ps->GetTextureData();
 	ParticleSystemData* ps_temp = ps->GetPSData();
-	ExportSystemData* ps_ex_temp = ps->GetExportData();
 
 	wchar_t buf[100] = { 0 };
 	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
@@ -594,7 +595,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		glewInit(); //3. Initiera The OpenGL Extension Wrangler Library (GLEW)
 		SetViewport(wndHandle);
 		
-		double dt = 0.0f;
+
 		float timePass = 0.0f;
 		int fps = 0;
 		unsigned int start = clock();
@@ -727,7 +728,7 @@ HGLRC CreateOpenGLContext(HWND wndHandle)
 		PFD_DRAW_TO_WINDOW |              // support window  
 		PFD_SUPPORT_OPENGL |              // support OpenGL  
 		PFD_DOUBLEBUFFER |                // double buffered
-		0,               // disable depth buffer <-- added by Stefan
+		0,								  // disable depth buffer
 		PFD_TYPE_RGBA,                    // RGBA type  
 		32,                               // 32-bit color depth  
 		0, 0, 0, 0, 0, 0,                 // color bits ignored  
