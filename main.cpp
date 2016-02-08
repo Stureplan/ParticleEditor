@@ -134,13 +134,9 @@ void SetLabel()
 void TW_CALL Export(void *clientData)
 {
 	//Get info
-	TextureData* tex_temp;
-	ParticleSystemData* ps_temp;
-	ExportSystemData* ps_ex_temp;
-
-	tex_temp = ps->GetTextureData();
-	ps_temp = ps->GetPSData();
-	ps_ex_temp = ps->GetExportData();
+	TextureData* tex_temp = ps->GetTextureData();
+	ParticleSystemData* ps_temp = ps->GetPSData();
+	ExportSystemData* ps_ex_temp = ps->GetExportData();
 
 	wchar_t buf[100] = { 0 };
 	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
@@ -358,7 +354,7 @@ void CreateObjects()
 	temp.maxparticles = 100;
 	temp.emission = 0.1f;
 	temp.force = 5.0f;
-	temp.drag = 2.0f;
+	temp.drag = 0.0f;
 	temp.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
 	temp.continuous = true;
 

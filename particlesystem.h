@@ -8,6 +8,7 @@
 #include <ctime>
 #include <random>
 #include <algorithm>
+#include <math.h>
 
 #include "structs.h"
 
@@ -39,6 +40,7 @@ public:
 
 	void Play();
 	void Pause();
+	void Restart();
 
 private:
 	GLuint texture;
@@ -64,6 +66,7 @@ private:
 	int m_activeparticles;
 
 	bool m_playing;
+	int m_fps = 60;
 
 	glm::mat4 Model;
 	glm::mat4 LookAt = glm::mat4(1.0f);

@@ -161,6 +161,24 @@ void ParticleSystem::Pause()
 {
 	m_playing = false;
 }
+
+void ParticleSystem::Restart()
+{
+	for (int i = 0; i < m_particleinfo->maxparticles; i++)
+	{
+		Particle &p = m_particles.at(i);
+		p.pos = m_position;
+		p.ctime = m_particleinfo->lifetime;
+		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
+		p.dist = -1.0f;
+		p.alive = false;
+		p.firsloop = true;
+		m_currentCD = m_particleinfo->emission;
+
+		m_particles.at(i) = p;
+		m_vertices.at(i) = p.pos;
+	}
+}
 //TODO: Make sure particles aren't rendered when dead. (Priority)
 
 void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemData* part, glm::vec3 campos)
@@ -373,6 +391,8 @@ ExportSystemData* ParticleSystem::GetExportData()
 	ExportSystemData* ex;
 	ExportParticle* particles = new ExportParticle[m_particleinfo->maxparticles];
 	
+	float f = m_particleinfo->lifetime * m_fps;
+	int frames = floor(f);
 
 
 	//* Fill particles with data *
@@ -381,7 +401,7 @@ ExportSystemData* ParticleSystem::GetExportData()
 
 
 	ex->headerSize = sizeof(float) * 2 + sizeof(int) * 3 + sizeof(bool); // + sizeof(char) * textureNameSize
-	//expSystem->frames = 0; //m_particleinfo->lifetime * k = frames?
+	ex->frames = frames;
 	ex->quadSize = glm::vec2(m_particleinfo->width, m_particleinfo->height);
 	ex->textureName = this->m_textureinfo->texturename;
 	ex->continuous = m_particleinfo->continuous;
