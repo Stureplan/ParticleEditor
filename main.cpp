@@ -74,9 +74,11 @@ int			CURRENT_VTXCOUNT = 0;
 int			CURRENT_VTXCOUNT_DIFF = 0;
 int			CURRENT_ACTIVE = 0;
 float		CURRENT_FORCE = 0.0f;
+float		CURRENT_DRAG = 0.0f;
 float		CURRENT_GRAVITY = 0.0f;
 std::string CURRENT_LABEL;
-float		CURRENT_RATE = 0.0f;
+float		CURRENT_EMISSION = 0.0f;
+float		CURRENT_EMISSION_DIFF = 0.0f;
 float		CURRENT_LIFETIME = 1.0f;
 bool		CURRENT_REPEAT = true;
 bool		RENDER_DIR = true;
@@ -134,10 +136,11 @@ void TW_CALL Export(void *clientData)
 	//Get info
 	TextureData* tex_temp;
 	ParticleSystemData* ps_temp;
+	ExportSystemData* ps_ex_temp;
 
 	tex_temp = ps->GetTextureData();
 	ps_temp = ps->GetPSData();
-
+	ps_ex_temp = ps->GetExportData();
 
 	wchar_t buf[100] = { 0 };
 	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
@@ -216,7 +219,7 @@ void TW_CALL Export(void *clientData)
 	file << ps_temp->height << "\n";
 	file << ps_temp->maxparticles << "\n";
 	file << ps_temp->lifetime << "\n";
-	file << ps_temp->rate << "\n";
+	file << ps_temp->emission << "\n";
 	file << ps_temp->force << "\n";
 	file << ps_temp->gravity << "\n";
 	file.close();
@@ -269,7 +272,7 @@ void InitializeGUI()
 
 	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_VTXCOUNT, "label='Max Particles:' min=1 max=2000 ");
 	TwAddVarRO(BarGUI, "Unused", TW_TYPE_INT16, &CURRENT_ACTIVE, "label='Active Particles:' ");
-	TwAddVarRW(BarGUI, "Rate:", TW_TYPE_FLOAT, &CURRENT_RATE, "min=-5.0f max=10.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Emission Delay:", TW_TYPE_FLOAT, &CURRENT_EMISSION, "min=0.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=5.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
 	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f");
@@ -278,6 +281,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROT.y, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROT.z, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Force:", TW_TYPE_FLOAT, &CURRENT_FORCE, "min=-10.0f max=10.0f step=0.01");
+	TwAddVarRW(BarGUI, "Drag:", TW_TYPE_FLOAT, &CURRENT_DRAG, "min=0.0f max=10.0f step=0.01");
 	//TwAddVarRW(BarGUI, "Direction", TW_TYPE_DIR3F, &CURRENT_ROT, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
@@ -352,18 +356,21 @@ void CreateObjects()
 	temp.height = 0.2f;
 	temp.lifetime = 1.0f;
 	temp.maxparticles = 100;
-	temp.rate = 0.1f;
+	temp.emission = 0.1f;
 	temp.force = 5.0f;
+	temp.drag = 2.0f;
 	temp.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
 	temp.continuous = true;
 
 	CURRENT_SCALE.x = (float)temp.width;
 	CURRENT_SCALE.y = (float)temp.height;
 	CURRENT_FORCE = temp.force;
+	CURRENT_DRAG = temp.drag;
 	CURRENT_GRAVITY = temp.gravity;
 	CURRENT_VTXCOUNT = temp.maxparticles;
 	CURRENT_VTXCOUNT_DIFF = temp.maxparticles;
-	CURRENT_RATE = temp.rate;
+	CURRENT_EMISSION = temp.emission;
+	CURRENT_EMISSION_DIFF = temp.emission;
 	CURRENT_LIFETIME = temp.lifetime;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
@@ -419,7 +426,7 @@ void Update (double deltaTime)
 	}
 	*/
 
-	if (GetAsyncKeyState (VK_RIGHT) && input_current <= 0.0f)
+	if (GetAsyncKeyState (0x54) && input_current <= 0.0f)
 	{
 		input_current = input_cooldown;
 		if (CURRENT_TEXTURE+1 >= texturedata.size ())
@@ -435,22 +442,6 @@ void Update (double deltaTime)
 		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
 		SetLabel ();
 
-	}
-	if (GetAsyncKeyState (VK_LEFT) && input_current <= 0.0f)
-	{
-		input_current = input_cooldown;
-		if (CURRENT_TEXTURE - 1 < 0)
-		{
-			CURRENT_TEXTURE = texturedata.size()-1;
-		}
-		else
-		{
-			CURRENT_TEXTURE--;
-		}
-
-		ps->Retexture (&texturedata[CURRENT_TEXTURE]);
-		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
-		SetLabel ();
 	}
 
 
@@ -471,7 +462,13 @@ void Update (double deltaTime)
 		Rebuild((void*)0);
 	}
 
+	if (CURRENT_EMISSION != CURRENT_EMISSION_DIFF)
+	{
+		Rebuild((void*)0);
+	}
+
 	CURRENT_VTXCOUNT_DIFF = CURRENT_VTXCOUNT;
+	CURRENT_EMISSION_DIFF = CURRENT_EMISSION;
 
 	CURRENT_ROT = glm::clamp(CURRENT_ROT, -1.0f, 1.0f);
 
@@ -489,8 +486,9 @@ void Update (double deltaTime)
 	temp.width		= CURRENT_SCALE.x;
 	temp.height		= CURRENT_SCALE.y;
 	temp.force		= CURRENT_FORCE;
+	temp.drag		= CURRENT_DRAG;
 	temp.gravity	= CURRENT_GRAVITY;
-	temp.rate		= CURRENT_RATE;
+	temp.emission	= CURRENT_EMISSION;
 	temp.lifetime	= CURRENT_LIFETIME;
 	temp.continuous = CURRENT_REPEAT;
 

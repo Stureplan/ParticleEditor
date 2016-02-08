@@ -32,6 +32,7 @@ public:
 
 	glm::mat4 GetModel();
 	ParticleSystemData* GetPSData();
+	ExportSystemData* GetExportData();
 	TextureData* GetTextureData();
 	int GetActiveParticles();
 	bool IsPlaying();

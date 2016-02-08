@@ -13,7 +13,7 @@ ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* te
 	//Set texture
 	this->m_textureinfo = textureinfo;
 	this->m_particleinfo = particleinfo;
-	this->m_currentCD = m_particleinfo->rate;
+	this->m_currentCD = m_particleinfo->emission;
 	this->m_position = position;
 	this->m_shader = shader;
 	this->m_lshader = lshader;
@@ -109,7 +109,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 		p.dist = -1.0f;
 		p.alive = false;
 		p.firsloop = true;
-		m_currentCD = m_particleinfo->rate;
+		m_currentCD = m_particleinfo->emission;
 
 		m_particles.at(i) = p;
 		m_vertices.at(i) = p.pos;
@@ -190,6 +190,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 
 				//How many percent of the particle's lifetime has been travelled
 				float percent = p.ctime / m_particleinfo->lifetime;
+				float drag = percent / m_particleinfo->drag;
 
 				//Increase velocity as time goes on
 				if (directional)
@@ -204,19 +205,31 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 					//Velocity is correct
 					p.vel = p.rdir * dT;
 				}
-				//Separate container for random dir
+
+
 				glm::vec3 oldPos = p.pos;
 
-				//Lastly, add gravity
+				//Add gravity
 				p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
 
 				//Add the velocity to the position
-				p.pos.x -= p.vel.x * m_particleinfo->force;
-				p.pos.y += p.vel.y * m_particleinfo->force;
-				p.pos.z -= p.vel.z * m_particleinfo->force;
-				
-				p.dir = oldPos - p.pos;
+				if (m_particleinfo->drag != 0.0f)
+				{
+					p.pos.x -= (p.vel.x * m_particleinfo->force * drag);
+					p.pos.y += (p.vel.y * m_particleinfo->force * drag);
+					p.pos.z -= (p.vel.z * m_particleinfo->force * drag);
+				}
+				else
+				{
+					p.pos.x -= (p.vel.x * m_particleinfo->force);
+					p.pos.y += (p.vel.y * m_particleinfo->force);
+					p.pos.z -= (p.vel.z * m_particleinfo->force);
+				}
 
+				//add force too --^   m_particleinfo->force
+				
+				//Use particle pos before it was moved to find out direction
+				p.dir = oldPos - p.pos;
 
 				p.dist = glm::length(p.pos - campos);
 				m_vertices.at(i) = p.pos;
@@ -254,7 +267,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 					p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 					p.dist = -1.0f;
 
-					m_currentCD = m_particleinfo->rate;
+					m_currentCD = m_particleinfo->emission;
 
 					m_vertices.at(i) = p.pos;
 				}
@@ -270,7 +283,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 						p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 						p.dist = -1.0f;
 
-						m_currentCD = m_particleinfo->rate;
+						m_currentCD = m_particleinfo->emission;
 
 						m_vertices.at(i) = p.pos;
 					}
@@ -353,16 +366,35 @@ glm::mat4 ParticleSystem::GetModel()
 ParticleSystemData* ParticleSystem::GetPSData()
 {
 	return this->m_particleinfo;
+}
 
-	//ExportSystemData* expSystem;
-	//expSystem->headerSize = sizeof(float) * 2 + sizeof(int) * 3 + sizeof(bool); // + sizeof(char) * textureNameSize
+ExportSystemData* ParticleSystem::GetExportData()
+{
+	ExportSystemData* ex;
+	ExportParticle* particles = new ExportParticle[m_particleinfo->maxparticles];
+	
+
+
+	//* Fill particles with data *
+	//particles[0].pos = &glm::vec3(0.0f, 0.0f, 0.0f);
+	//particles[1].pos = &glm::vec3(1.0f, 1.0f, 1.0f);
+
+
+	ex->headerSize = sizeof(float) * 2 + sizeof(int) * 3 + sizeof(bool); // + sizeof(char) * textureNameSize
 	//expSystem->frames = 0; //m_particleinfo->lifetime * k = frames?
-	//expSystem->quadSize = glm::vec2(m_particleinfo->width, m_particleinfo->height);
-	//expSystem->textureName = this->m_textureinfo->texturename;
-	//expSystem->continuous = m_particleinfo->continuous;
-	//expSystem->nrOfParticles = m_particleinfo->maxparticles;
-	//expSystem->particleSize = sizeof(float) * 7 * expSystem->nrOfParticles;
-	////expSystem->particles = "magic Particle Array that have data for all frames";
+	ex->quadSize = glm::vec2(m_particleinfo->width, m_particleinfo->height);
+	ex->textureName = this->m_textureinfo->texturename;
+	ex->continuous = m_particleinfo->continuous;
+	ex->nrOfParticles = m_particleinfo->maxparticles;
+	ex->particleSize = sizeof(float) * 7 * ex->nrOfParticles;
+	ex->particles = particles;
+
+	//Delete and free after we're done
+	delete[] particles;
+	particles = 0;
+
+
+	return ex;
 }
 
 TextureData* ParticleSystem::GetTextureData()

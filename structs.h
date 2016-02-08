@@ -15,8 +15,9 @@ struct ParticleSystemData
 	float height;
 	int maxparticles;
 	float lifetime;
-	float rate;
+	float emission;
 	float force;
+	float drag;
 	float gravity;
 	bool continuous;
 };
@@ -54,7 +55,7 @@ struct ExportSystemData
 	int headerSize;
 	int frames;
 	glm::vec2 quadSize;
-	char* textureName;
+	const char* textureName;
 	bool continuous;
 	int nrOfParticles;
 	int particleSize;
