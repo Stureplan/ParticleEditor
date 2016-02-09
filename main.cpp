@@ -15,6 +15,7 @@
 #include <gl/GL.h>
 #include <AntTweakBar.h>
 #include <glfw3.h>
+#include <iostream>
 #include <fstream>
 
 
@@ -198,28 +199,29 @@ void TW_CALL Export(void *clientData)
 
 	filename.insert(0, std::string("Exports/"));
 
+	int test = strlen(tex_temp->texturename);
 
 	//Opens file
 	std::ofstream file;
-	file.open(filename);
-	
-	//Texture details
-	file << "Texture: \n";
-	file << tex_temp->texturename << "\n";
-	file << tex_temp->height << "\n";
-	file << tex_temp->width << "\n";
-
-	//ParticleSystem details
-	file << "\n";
-	file << "Particle System: \n";
-	file << ps_temp->width << "\n";
-	file << ps_temp->height << "\n";
-	file << ps_temp->maxparticles << "\n";
-	file << ps_temp->lifetime << "\n";
-	file << ps_temp->emission << "\n";
-	file << ps_temp->force << "\n";
-	file << ps_temp->gravity << "\n";
+	file.open(filename, std::ios::binary | std::ios::out);
+	file.write(reinterpret_cast<char*>(&test), sizeof(int));
+	file.write(tex_temp->texturename, sizeof(const char) * strlen(tex_temp->texturename));
+	file.write(reinterpret_cast<char*>(&tex_temp->width), sizeof(int));
 	file.close();
+
+	int t;
+	int w;
+
+	std::ifstream file2;
+	file2.open(filename, std::ios::binary | std::ios::in);
+	file2.read((char*)&t, sizeof(int));
+	char* f = (char*)malloc(t + 1);
+	file2.read(f, sizeof(char) * t);
+	f[t] = 0;
+	file2.read((char*)&w, sizeof(int));
+	file2.close();
+
+
 }
 
 void TW_CALL Rebuild(void *clientData)

@@ -30,6 +30,8 @@ void ParticleSystem::Initialize()
 	std::mt19937 mt(rd());
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
+	int s = mt.default_seed;
+
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
 	{
@@ -287,8 +289,6 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 						m_vertices.at(i) = p.pos;
 					}
 				}
-
-
 			}
 
 			if (p.alive == false)
@@ -345,8 +345,8 @@ void ParticleSystem::RenderLightning()
 	std::random_device rd;
 	std::mt19937 mt(rd());
 	std::uniform_int_distribution<int32_t> dist(1, m_vertices.size());
-	
 	std::uniform_real_distribution<float> distf(1.0f, 5.0f);
+
 	glLineWidth(distf(mt));
 
 	glDrawArrays(GL_LINE_STRIP, 0, dist(mt));
