@@ -17,6 +17,8 @@
 #include <glfw3.h>
 #include <iostream>
 #include <fstream>
+#include <shobjidl.h> 
+
 
 
 //Additional includes
@@ -204,6 +206,7 @@ void TW_CALL Export(void *clientData)
 		}
 	}
 
+
 	//Add folder to the filename to export it to the correct location
 	filename.insert(0, std::string("Exports/"));
 
@@ -251,6 +254,15 @@ void TW_CALL Export(void *clientData)
 
 void TW_CALL Import(void *clientData)
 {
+	//Windows File opening dialog system
+	/*IFileOpenDialog* pFile;
+	CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+		IID_IFileOpenDialog, reinterpret_cast<void**>(&pFile));
+	pFile->Show(NULL);
+	*/
+
+
+
 	//Buffer to write input to
 	wchar_t buf[100] = { 0 };
 	CWin32InputBox::InputBox(_T("Import Particle System"), _T("What's the filename?\nNOTE: Remember the .ps extension."), buf, 100, false);
@@ -305,7 +317,7 @@ void TW_CALL Import(void *clientData)
 
 	//Add folder to the filename to import it from the correct location
 	filename.insert(0, std::string("Exports/"));
-
+	
 	//Test reading file
 	std::ifstream file2;
 	file2.open(filename, std::ios::binary | std::ios::in);
