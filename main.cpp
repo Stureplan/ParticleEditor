@@ -255,11 +255,32 @@ void TW_CALL Export(void *clientData)
 void TW_CALL Import(void *clientData)
 {
 	//Windows File opening dialog system
-	/*IFileOpenDialog* pFile;
+	IFileOpenDialog* pFile;
+
+	//What files to display
+	LPCWSTR ps = L".ps";
+	COMDLG_FILTERSPEC rgSpec = { ps, L"*.ps" };
+
+	//Create instance
 	CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
 		IID_IFileOpenDialog, reinterpret_cast<void**>(&pFile));
+	
+	//Set attributes
+	pFile->SetDefaultExtension(L"ps");
+	pFile->SetFileTypes(1, &rgSpec);
+	
+	//Display dialog system
 	pFile->Show(NULL);
-	*/
+
+	//File chosen
+	IShellItem* pItem;
+	pFile->GetResult(&pItem);
+
+	//Filepath from file
+	LPWSTR fPath;
+	pItem->GetDisplayName(SIGDN_NORMALDISPLAY, &fPath);
+	std::string fResult = WCHAR_TO_STRING(fPath);
+	
 
 
 
