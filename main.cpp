@@ -30,6 +30,7 @@
 #include "particlesystem.h"
 #include "Win32InputBox.h"
 
+
 using namespace glm;
 
 //Window
@@ -149,7 +150,7 @@ void TW_CALL Export(void *clientData)
 	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nNOTE: It will automatically get a .ps extension."), buf, 100, false);
 	std::wstring ws(buf);
 	std::string filename(ws.begin(), ws.end());
-	std::vector<std::string> filelist = ListFiles("Exports/*.bin");
+	std::vector<std::string> filelist = ListFiles("Exports/*", ".ps");
 
 	//If the user was stupid and didn't enter a filename, return and cancel
 	if (filename.size() == 0) {	return;	}
@@ -179,14 +180,14 @@ void TW_CALL Export(void *clientData)
 			return;
 		}
 	}
-
+	
 
 
 	//Checks if the filename user wrote is something that already exists
 	for (int i = 0; i < filelist.size(); i++)
 	{
 		std::string loop = filelist[i];
-		loop.erase(0, 14);
+		loop.erase(0, 8);
 
 		if (filename == loop)
 		{
@@ -246,15 +247,69 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->continuous), sizeof(bool));
 	//file.write(seed sizeof(int))
 	file.close();
+}
 
-	int tsize, texsize;
-	glm::vec3 tdir;
-	float w, h;
+void TW_CALL Import(void *clientData)
+{
+	//Buffer to write input to
+	wchar_t buf[100] = { 0 };
+	CWin32InputBox::InputBox(_T("Import Particle System"), _T("What's the filename?\nNOTE: Remember the .ps extension."), buf, 100, false);
+	std::wstring ws(buf);
+	std::string filename(ws.begin(), ws.end());
+	std::vector<std::string> filelist = ListFiles("Exports/*", ".ps");
+
+	//Stupid user check
+	if (filename.size() == 0) { return; }
+
+	bool found = false;
+
+	//Checks if the filename user wrote is something that already exists
+	for (int i = 0; i < filelist.size(); i++)
+	{
+		std::string loop = filelist[i];
+		loop.erase(0, 8);
+
+		if (filename == loop)
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if (found == false)
+	{
+		Beep(1000, 50);
+		Beep(900, 50);
+		Beep(800, 50);
+		Beep(700, 50);
+		Beep(600, 50);
+		Beep(500, 50);
+		Beep(400, 50);
+		int msg = MessageBox(
+			NULL,
+			L"Filename not found.",
+			L"Error",
+			MB_ICONERROR | MB_OK);
+		return;
+	}
+	else if (found == true)
+	{
+		Beep(400, 50);
+		Beep(500, 50);
+		Beep(600, 50);
+		Beep(700, 50);
+		Beep(800, 50);
+		Beep(900, 50);
+		Beep(1000, 50);
+	}
+
+	//Add folder to the filename to import it from the correct location
+	filename.insert(0, std::string("Exports/"));
 
 	//Test reading file
 	std::ifstream file2;
 	file2.open(filename, std::ios::binary | std::ios::in);
-	
+
 	//Read header
 	ExportHeader exHeader;
 	file2.read((char*)&exHeader, sizeof(exHeader));
@@ -269,7 +324,6 @@ void TW_CALL Export(void *clientData)
 	file2.read((char*)&exPS, sizeof(exPS));
 
 	file2.close();
-
 }
 
 void TW_CALL Rebuild(void *clientData)
@@ -337,6 +391,7 @@ void InitializeGUI()
 	
 	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
+	TwAddButton(BarControls, "Import", Import, NULL, " label='Import Particle System' ");
 	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
 	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
@@ -370,7 +425,7 @@ void CreateShaders()
 void CreateObjects()
 {
 	//Lists all files inside of Data folder with the .png extension in a std::vector
-	texturenames = ListFiles("Data/Textures/*.png");
+	texturenames = ListFiles("Data/Textures/*", ".png");
 
 	for (int i = 0; i < texturenames.size (); i++)
 	{

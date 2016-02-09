@@ -58,8 +58,10 @@ wchar_t* STRING_TO_WCHAR(const std::string &str)
 	return wchar;
 }
 
-std::vector<std::string> ListFiles(std::string directoryName)
+std::vector<std::string> ListFiles(std::string directoryName, std::string extensionName)
 {
+	directoryName.append(extensionName);
+	
 	WIN32_FIND_DATA FindFileData;
 	wchar_t * FileName = STRING_TO_WCHAR(directoryName);
 	HANDLE hFind = FindFirstFile(FileName, &FindFileData);
@@ -72,11 +74,23 @@ std::vector<std::string> ListFiles(std::string directoryName)
 		listFileNames.push_back(WCHAR_TO_STRING(FindFileData.cFileName));
 	}
 
-	//Insert "Data/Textures" at the beginning of each string
-	for (int i = 0; i < listFileNames.size(); i++)
+	if (extensionName == ".png")
 	{
-		listFileNames[i].insert(0, std::string("Data/Textures/"));
+		//Insert "Data/Textures" at the beginning of each string
+		for (int i = 0; i < listFileNames.size(); i++)
+		{
+			listFileNames[i].insert(0, std::string("Data/Textures/"));
+		}
 	}
+	else if (extensionName == ".ps")
+	{
+		//Insert "Exports/" at the beginning of each string
+		for (int i = 0; i < listFileNames.size(); i++)
+		{
+			listFileNames[i].insert(0, std::string("Exports/"));
+		}
+	}
+
 
 	return listFileNames;
 }
