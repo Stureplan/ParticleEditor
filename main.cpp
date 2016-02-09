@@ -136,19 +136,26 @@ void SetLabel()
 
 void TW_CALL Export(void *clientData)
 {
-	//Get info
-	TextureData* tex_temp = ps->GetTextureData();
+	//Get texture name (minus directories)
+	std::string temp_tex = texturenames.at(CURRENT_TEXTURE);
+	temp_tex.erase(0, 14);
+	const char* texture = temp_tex.c_str();
+
+	//Get particle system
 	ParticleSystemData* ps_temp = ps->GetPSData();
 
+	//Buffer to write input to
 	wchar_t buf[100] = { 0 };
-	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nIt will automatically get a .ps extension."), buf, 100, false);
+	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nNOTE: It will automatically get a .ps extension."), buf, 100, false);
 	std::wstring ws(buf);
 	std::string filename(ws.begin(), ws.end());
-	std::vector<std::string> filelist = ListFiles("Exports/*.ps");
+	std::vector<std::string> filelist = ListFiles("Exports/*.bin");
 
+	//If the user was stupid and didn't enter a filename, return and cancel
 	if (filename.size() == 0) {	return;	}
-	filename.append(".ps");
 
+	//Add .ps extension to the file automatically
+	filename.append(".ps");
 
 	//If the active particles is way different from maxparticles, give user a warning
 	//and return from filesaving
@@ -158,7 +165,8 @@ void TW_CALL Export(void *clientData)
 	amount = ps_temp->maxparticles - ps->GetActiveParticles();
 	result = (float)amount / (float)ps_temp->maxparticles;
 
-	if (result > 0.3f)
+	//30% or more than the used particles
+	if (result >= 0.3f)
 	{
 		int msg = MessageBox(
 			NULL,
@@ -192,35 +200,75 @@ void TW_CALL Export(void *clientData)
 			{
 				return;
 			}
-
 		}
-
 	}
 
+	//Add folder to the filename to export it to the correct location
 	filename.insert(0, std::string("Exports/"));
 
-	int test = strlen(tex_temp->texturename);
+	//Header size and texture size
+	int texturesize;
+	int totalsize;
+
+	//Texturesize is how long the string is * bytes
+	texturesize = strlen(texture) * sizeof(const char);
+	totalsize = texturesize;				//texturename
+	totalsize += sizeof(float) * 3;			//glm::vec3 dir
+	totalsize += sizeof(float);				//float width
+	totalsize += sizeof(float);				//float height
+	totalsize += sizeof(int);				//int maxparticles
+	totalsize += sizeof(float);				//float lifetime
+	totalsize += sizeof(float);				//float emission
+	totalsize += sizeof(float);				//float force
+	totalsize += sizeof(float);				//float drag
+	totalsize += sizeof(float);				//float gravity
+	totalsize += sizeof(bool);				//bool continuous
 
 	//Opens file
 	std::ofstream file;
 	file.open(filename, std::ios::binary | std::ios::out);
-	file.write(reinterpret_cast<char*>(&test), sizeof(int));
-	file.write(tex_temp->texturename, sizeof(const char) * strlen(tex_temp->texturename));
-	file.write(reinterpret_cast<char*>(&tex_temp->width), sizeof(int));
+	
+	//Header
+	file.write(reinterpret_cast<char*>(&totalsize), sizeof(int));
+	file.write(reinterpret_cast<char*>(&texturesize), sizeof(int));
+	file.write(texture, sizeof(const char) * strlen(texture));
+	
+	//Particle System variables
+	file.write(reinterpret_cast<char*>(&ps_temp->dir), sizeof(glm::vec3));
+	file.write(reinterpret_cast<char*>(&ps_temp->width), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->height), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->maxparticles), sizeof(int));
+	file.write(reinterpret_cast<char*>(&ps_temp->lifetime), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->emission), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->force), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->drag), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->gravity), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->continuous), sizeof(bool));
+	//file.write(seed sizeof(int))
 	file.close();
 
-	int t;
-	int w;
+	int tsize, texsize;
+	glm::vec3 tdir;
+	float w, h;
 
+	//Test reading file
 	std::ifstream file2;
 	file2.open(filename, std::ios::binary | std::ios::in);
-	file2.read((char*)&t, sizeof(int));
-	char* f = (char*)malloc(t + 1);
-	file2.read(f, sizeof(char) * t);
-	f[t] = 0;
-	file2.read((char*)&w, sizeof(int));
-	file2.close();
+	
+	//Read header
+	ExportHeader exHeader;
+	file2.read((char*)&exHeader, sizeof(exHeader));
 
+	//Read texture name
+	char* f = (char*)malloc(exHeader.texturesize + 1);
+	file2.read(f, sizeof(char) * exHeader.texturesize);
+	f[exHeader.texturesize] = 0;
+
+	//Read Particle System
+	ParticleSystemData exPS;
+	file2.read((char*)&exPS, sizeof(exPS));
+
+	file2.close();
 
 }
 
@@ -351,8 +399,8 @@ void CreateObjects()
 	wire_tex.width = 32;
 	wire_tex.height = 32;
 
-	temp.width = 0.2f;
-	temp.height = 0.2f;
+	temp.width = 0.20000f;
+	temp.height = 0.200000f;
 	temp.lifetime = 1.0f;
 	temp.maxparticles = 100;
 	temp.emission = 0.1f;
@@ -361,8 +409,8 @@ void CreateObjects()
 	temp.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
 	temp.continuous = true;
 
-	CURRENT_SCALE.x = (float)temp.width;
-	CURRENT_SCALE.y = (float)temp.height;
+	CURRENT_SCALE.x = temp.width;
+	CURRENT_SCALE.y = temp.height;
 	CURRENT_FORCE = temp.force;
 	CURRENT_DRAG = temp.drag;
 	CURRENT_GRAVITY = temp.gravity;

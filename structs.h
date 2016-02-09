@@ -8,6 +8,12 @@ struct TextureData
 	int height;
 };
 
+struct ExportHeader
+{
+	int totalsize;
+	int texturesize;
+};
+
 struct ParticleSystemData
 {
 	glm::vec3 dir;
@@ -27,7 +33,6 @@ struct ParticleSystemData
 struct PlayerData
 {
 	bool playing;
-
 };
 
 struct Particle
