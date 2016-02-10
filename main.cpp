@@ -139,6 +139,62 @@ void SetLabel()
 
 void TW_CALL Export(void *clientData)
 {
+	std::string fResult;
+
+	HRESULT hr = CoInitializeEx(NULL,
+		COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+	if (SUCCEEDED(hr))
+	{
+		//Windows File opening dialog system
+		IFileSaveDialog* pFile;
+		
+		//What files to display
+		LPCWSTR ps = L".ps";
+		COMDLG_FILTERSPEC rgSpec = { ps, L"*.ps" };
+
+		//Create instance
+		hr = CoCreateInstance(
+			CLSID_FileSaveDialog,
+			NULL,
+			CLSCTX_ALL,
+			IID_IFileSaveDialog,
+			reinterpret_cast<void**>(&pFile));
+
+		if (SUCCEEDED(hr))
+		{
+			//Set attributes
+			pFile->SetDefaultExtension(L"ps");
+			pFile->SetFileTypes(1, &rgSpec);
+
+			//Display dialog system
+			hr = pFile->Show(NULL);
+
+			if (SUCCEEDED(hr))
+			{
+				//File chosen
+				IShellItem* pItem;
+				hr = pFile->GetResult(&pItem);
+
+				if (SUCCEEDED(hr))
+				{
+					//Filepath from file
+					LPWSTR fPath;
+					hr = pItem->GetDisplayName(SIGDN_NORMALDISPLAY, &fPath);
+
+					if (SUCCEEDED(hr))
+					{
+						fResult = WCHAR_TO_STRING(fPath);
+						CoTaskMemFree(fPath);
+					}
+					pItem->Release();
+				}
+				pFile->Release();
+			}
+			CoUninitialize();
+		}
+	}
+
 	//Get texture name (minus directories)
 	std::string temp_tex = texturenames.at(CURRENT_TEXTURE);
 	temp_tex.erase(0, 14);
