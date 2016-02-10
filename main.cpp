@@ -119,6 +119,22 @@ void SetFPS(int fps)
 	CURRENT_FPS = fps;
 }
 
+int CheckTexture(const char* texturename)
+{
+	int number = 0;
+
+	for (int i = 0; i < texturenames.size(); i++)
+	{
+		if (texturenames.at(i) == texturename)
+		{
+			number = i;
+		}
+	}
+
+
+	return number;
+}
+
 void SetLabel()
 {
 	std::string temp = texturenames.at(CURRENT_TEXTURE);
@@ -141,8 +157,7 @@ void TW_CALL Export(void *clientData)
 {
 	std::string fResult;
 
-	HRESULT hr = CoInitializeEx(NULL,
-		COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
 	if (SUCCEEDED(hr))
 	{
@@ -154,12 +169,7 @@ void TW_CALL Export(void *clientData)
 		COMDLG_FILTERSPEC rgSpec = { ps, L"*.ps" };
 
 		//Create instance
-		hr = CoCreateInstance(
-			CLSID_FileSaveDialog,
-			NULL,
-			CLSCTX_ALL,
-			IID_IFileSaveDialog,
-			reinterpret_cast<void**>(&pFile));
+		hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog, reinterpret_cast<void**>(&pFile));
 
 		if (SUCCEEDED(hr))
 		{
@@ -195,6 +205,27 @@ void TW_CALL Export(void *clientData)
 		}
 	}
 
+	if (fResult.size() <= 0)
+	{
+		//No file was selected
+		Beep(1000, 50);
+		Beep(900, 50);
+		Beep(800, 50);
+		Beep(700, 50);
+		Beep(600, 50);
+		Beep(500, 50);
+		Beep(400, 50);
+		int msg = MessageBox(
+			NULL,
+			L"No file selected! Import canceled.",
+			L"Error",
+			MB_ICONERROR | MB_OK);
+		return;
+	}
+
+	//Add folder to the filename to import it from the correct location
+	fResult.insert(0, std::string("Exports/"));
+
 	//Get texture name (minus directories)
 	std::string temp_tex = texturenames.at(CURRENT_TEXTURE);
 	temp_tex.erase(0, 14);
@@ -202,19 +233,6 @@ void TW_CALL Export(void *clientData)
 
 	//Get particle system
 	ParticleSystemData* ps_temp = ps->GetPSData();
-
-	//Buffer to write input to
-	wchar_t buf[100] = { 0 };
-	CWin32InputBox::InputBox(_T("Set filename"), _T("Set your filename.\nNOTE: It will automatically get a .ps extension."), buf, 100, false);
-	std::wstring ws(buf);
-	std::string filename(ws.begin(), ws.end());
-	std::vector<std::string> filelist = ListFiles("Exports/*", ".ps");
-
-	//If the user was stupid and didn't enter a filename, return and cancel
-	if (filename.size() == 0) {	return;	}
-
-	//Add .ps extension to the file automatically
-	filename.append(".ps");
 
 	//If the active particles is way different from maxparticles, give user a warning
 	//and return from filesaving
@@ -239,33 +257,6 @@ void TW_CALL Export(void *clientData)
 		}
 	}
 	
-
-
-	//Checks if the filename user wrote is something that already exists
-	for (int i = 0; i < filelist.size(); i++)
-	{
-		std::string loop = filelist[i];
-		loop.erase(0, 8);
-
-		if (filename == loop)
-		{
-			int msg = MessageBox(
-				NULL, 
-				L"Filename already exists. Do you want to replace it?", 
-				L"Warning", 
-				MB_ICONWARNING | MB_YESNO);
-			
-			if (msg == IDNO)
-			{
-				return;
-			}
-		}
-	}
-
-
-	//Add folder to the filename to export it to the correct location
-	filename.insert(0, std::string("Exports/"));
-
 	//Header size and texture size
 	int texturesize;
 	int totalsize;
@@ -287,7 +278,7 @@ void TW_CALL Export(void *clientData)
 
 	//Opens file
 	std::ofstream file;
-	file.open(filename, std::ios::binary | std::ios::out);
+	file.open(fResult, std::ios::binary | std::ios::out);
 	
 	//Header
 	file.write(reinterpret_cast<char*>(&totalsize), sizeof(int));
@@ -477,6 +468,9 @@ void TW_CALL Import(void *clientData)
 	exTD.width = x;
 	exTD.height = y;
 	exTD.texturename = name.c_str();
+	CURRENT_TEXTURE = CheckTexture(exTD.texturename);
+	SetLabel();
+
 
 	arrow->SetActive(!exPS.omni);
 	ui_particle->Rebuild(&exTD);
