@@ -211,6 +211,8 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 				glm::vec3 oldPos = p.pos;
 
 				//Add gravity
+				//TODO: Change p.pos.y to vel because we want to use the drag
+				//variable later.
 				p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
 
 				//Add the velocity to the position

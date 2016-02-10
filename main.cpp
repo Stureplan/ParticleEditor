@@ -415,12 +415,15 @@ void TW_CALL Import(void *clientData)
 		return;
 	}
 
+
+
 	TextureData exTD;
 	exTD.width = x;
 	exTD.height = y;
 	exTD.texturename = name.c_str();
 
 	arrow->SetActive(!exPS.omni);
+	ui_particle->Rebuild(&exTD);
 	ps->Retexture(&exTD);
 	ps->Rebuild(&exPS);
 }
@@ -583,7 +586,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&temp,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.8f, 0.6f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.8f, 0.3f, 0.0f));
 
 	//Initial rot (direction) values
 	CURRENT_ROT = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -628,7 +631,7 @@ void Update (double deltaTime)
 	}
 	*/
 
-	if (GetAsyncKeyState (0x54) && input_current <= 0.0f)
+	if (GetAsyncKeyState (0x54) & 0x8000 && input_current <= 0.0f )
 	{
 		input_current = input_cooldown;
 		if (CURRENT_TEXTURE+1 >= texturedata.size ())
