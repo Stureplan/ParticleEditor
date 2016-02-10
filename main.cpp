@@ -254,32 +254,68 @@ void TW_CALL Export(void *clientData)
 
 void TW_CALL Import(void *clientData)
 {
-	//Windows File opening dialog system
-	IFileOpenDialog* pFile;
+	std::string fResult;
 
-	//What files to display
-	LPCWSTR ps = L".ps";
-	COMDLG_FILTERSPEC rgSpec = { ps, L"*.ps" };
+	HRESULT hr = CoInitializeEx(NULL, 
+	COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
-	//Create instance
-	CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
-		IID_IFileOpenDialog, reinterpret_cast<void**>(&pFile));
-	
-	//Set attributes
-	pFile->SetDefaultExtension(L"ps");
-	pFile->SetFileTypes(1, &rgSpec);
-	
-	//Display dialog system
-	pFile->Show(NULL);
+	if (SUCCEEDED(hr))
+	{
+		//Windows File opening dialog system
+		IFileOpenDialog* pFile;
 
-	//File chosen
-	IShellItem* pItem;
-	pFile->GetResult(&pItem);
+		//What files to display
+		LPCWSTR ps = L".ps";
+		COMDLG_FILTERSPEC rgSpec = { ps, L"*.ps" };
 
-	//Filepath from file
-	LPWSTR fPath;
-	pItem->GetDisplayName(SIGDN_NORMALDISPLAY, &fPath);
-	std::string fResult = WCHAR_TO_STRING(fPath);
+		//Create instance
+		hr = CoCreateInstance(
+			CLSID_FileOpenDialog, 
+			NULL, 
+			CLSCTX_ALL,
+			IID_IFileOpenDialog, 
+			reinterpret_cast<void**>(&pFile));
+
+		if (SUCCEEDED(hr))
+		{
+			//Set attributes
+			pFile->SetDefaultExtension(L"ps");
+			pFile->SetFileTypes(1, &rgSpec);
+
+			//Display dialog system
+			hr = pFile->Show(NULL);
+
+			if (SUCCEEDED(hr))
+			{
+				//File chosen
+				IShellItem* pItem;
+				hr = pFile->GetResult(&pItem);
+
+				if (SUCCEEDED(hr))
+				{
+					//Filepath from file
+					LPWSTR fPath;
+					hr = pItem->GetDisplayName(SIGDN_NORMALDISPLAY, &fPath);
+
+					if (SUCCEEDED(hr))
+					{
+						fResult = WCHAR_TO_STRING(fPath);
+						CoTaskMemFree(fPath);
+					}
+					pItem->Release();
+				}
+				pFile->Release();
+			}
+			CoUninitialize();
+		}
+	}
+
+	if (fResult.size() == 0)
+	{
+		//Opening failed, or cancelled
+	}
+
+
 	
 
 
