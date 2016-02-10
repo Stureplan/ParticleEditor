@@ -164,7 +164,7 @@ void ParticleSystem::Pause()
 
 //TODO: Make sure particles aren't rendered when dead. (Priority)
 
-void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemData* part, glm::vec3 campos)
+void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec3 campos)
 {
 	if (m_playing)
 	{
@@ -194,7 +194,7 @@ void ParticleSystem::Update(double deltaTime, bool directional, ParticleSystemDa
 				float drag = percent / m_particleinfo->drag;
 
 				//Increase velocity as time goes on
-				if (directional)
+				if (!m_particleinfo->omni)
 				{
 					m_directions.at(i) = glm::normalize(glm::vec3(p.dir));
 					p.vel = m_particleinfo->dir * dT;

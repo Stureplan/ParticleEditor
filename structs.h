@@ -26,6 +26,7 @@ struct ParticleSystemData
 	float drag;
 	float gravity;
 	bool continuous;
+	bool omni;
 };
 
 //TODO: Separate ParticleSystemData from PlayerData

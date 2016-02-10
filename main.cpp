@@ -227,6 +227,7 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(float);				//float drag
 	totalsize += sizeof(float);				//float gravity
 	totalsize += sizeof(bool);				//bool continuous
+	totalsize += sizeof(bool);				//bool omni
 
 	//Opens file
 	std::ofstream file;
@@ -248,6 +249,7 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->drag), sizeof(float));
 	file.write(reinterpret_cast<char*>(&ps_temp->gravity), sizeof(float));
 	file.write(reinterpret_cast<char*>(&ps_temp->continuous), sizeof(bool));
+	file.write(reinterpret_cast<char*>(&ps_temp->omni), sizeof(float));
 	//file.write(seed sizeof(int))
 	file.close();
 }
@@ -310,43 +312,9 @@ void TW_CALL Import(void *clientData)
 		}
 	}
 
-	if (fResult.size() == 0)
+	if (fResult.size() <= 0)
 	{
-		//Opening failed, or cancelled
-	}
-
-
-	
-
-
-
-	//Buffer to write input to
-	wchar_t buf[100] = { 0 };
-	CWin32InputBox::InputBox(_T("Import Particle System"), _T("What's the filename?\nNOTE: Remember the .ps extension."), buf, 100, false);
-	std::wstring ws(buf);
-	std::string filename(ws.begin(), ws.end());
-	std::vector<std::string> filelist = ListFiles("Exports/*", ".ps");
-
-	//Stupid user check
-	if (filename.size() == 0) { return; }
-
-	bool found = false;
-
-	//Checks if the filename user wrote is something that already exists
-	for (int i = 0; i < filelist.size(); i++)
-	{
-		std::string loop = filelist[i];
-		loop.erase(0, 8);
-
-		if (filename == loop)
-		{
-			found = true;
-			break;
-		}
-	}
-
-	if (found == false)
-	{
+		//No file was selected
 		Beep(1000, 50);
 		Beep(900, 50);
 		Beep(800, 50);
@@ -356,43 +324,105 @@ void TW_CALL Import(void *clientData)
 		Beep(400, 50);
 		int msg = MessageBox(
 			NULL,
-			L"Filename not found.",
+			L"No file selected! Import canceled.",
 			L"Error",
 			MB_ICONERROR | MB_OK);
 		return;
 	}
-	else if (found == true)
-	{
-		Beep(400, 50);
-		Beep(500, 50);
-		Beep(600, 50);
-		Beep(700, 50);
-		Beep(800, 50);
-		Beep(900, 50);
-		Beep(1000, 50);
-	}
 
 	//Add folder to the filename to import it from the correct location
-	filename.insert(0, std::string("Exports/"));
+	fResult.insert(0, std::string("Exports/"));
 	
 	//Test reading file
-	std::ifstream file2;
-	file2.open(filename, std::ios::binary | std::ios::in);
+	std::ifstream file;
+	file.open(fResult, std::ios::binary | std::ios::in);
+	if (!file.is_open())
+	{
+		//Error in opening the file
+		Beep(1000, 50);
+		Beep(900, 50);
+		Beep(800, 50);
+		Beep(700, 50);
+		Beep(600, 50);
+		Beep(500, 50);
+		Beep(400, 50);
+		int msg = MessageBox(
+			NULL,
+			L"File was damaged or corrupt!",
+			L"Error",
+			MB_ICONERROR | MB_OK);
+		file.close();
+		return;
+	}
 
 	//Read header
 	ExportHeader exHeader;
-	file2.read((char*)&exHeader, sizeof(exHeader));
+	file.read((char*)&exHeader, sizeof(exHeader));
 
 	//Read texture name
 	char* f = (char*)malloc(exHeader.texturesize + 1);
-	file2.read(f, sizeof(char) * exHeader.texturesize);
+	file.read(f, sizeof(char) * exHeader.texturesize);
 	f[exHeader.texturesize] = 0;
 
 	//Read Particle System
 	ParticleSystemData exPS;
-	file2.read((char*)&exPS, sizeof(exPS));
+	file.read((char*)&exPS, sizeof(exPS));
 
-	file2.close();
+	file.close();
+
+	//File found and filename is fResult
+	Beep(400, 50);
+	Beep(500, 50);
+	Beep(600, 50);
+	Beep(700, 50);
+	Beep(800, 50);
+	Beep(900, 50);
+	Beep(1000, 50);
+
+	CURRENT_ROT = exPS.dir;
+	CURRENT_SCALE.x = exPS.width;
+	CURRENT_SCALE.y = exPS.height;
+	CURRENT_FORCE = exPS.force;
+	CURRENT_DRAG = exPS.drag;
+	CURRENT_GRAVITY = exPS.gravity;
+	CURRENT_VTXCOUNT = exPS.maxparticles;
+	CURRENT_VTXCOUNT_DIFF = 0;
+	CURRENT_EMISSION = exPS.emission;
+	CURRENT_EMISSION_DIFF = exPS.emission;
+	CURRENT_LIFETIME = exPS.lifetime;
+
+	std::string name = "Data/Textures/";
+	name.append(f);
+
+	unsigned int x = 0;
+	unsigned int y = 0;
+	bool result = PNGSize(name.c_str(), x, y);
+	if (result == false)
+	{
+		//Texture wasn't recognized
+		Beep(1000, 50);
+		Beep(900, 50);
+		Beep(800, 50);
+		Beep(700, 50);
+		Beep(600, 50);
+		Beep(500, 50);
+		Beep(400, 50);
+		int msg = MessageBox(
+			NULL,
+			L"Texture not found!",
+			L"Error",
+			MB_ICONERROR | MB_OK);
+		return;
+	}
+
+	TextureData exTD;
+	exTD.width = x;
+	exTD.height = y;
+	exTD.texturename = name.c_str();
+
+	arrow->SetActive(!exPS.omni);
+	ps->Retexture(&exTD);
+	ps->Rebuild(&exPS);
 }
 
 void TW_CALL Rebuild(void *clientData)
@@ -532,6 +562,7 @@ void CreateObjects()
 	temp.drag = 0.0f;
 	temp.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
 	temp.continuous = true;
+	temp.omni = false;
 
 	CURRENT_SCALE.x = temp.width;
 	CURRENT_SCALE.y = temp.height;
@@ -662,8 +693,9 @@ void Update (double deltaTime)
 	temp.emission	= CURRENT_EMISSION;
 	temp.lifetime	= CURRENT_LIFETIME;
 	temp.continuous = CURRENT_REPEAT;
+	temp.omni		= !arrow->IsActive();
 
-	ps->Update(deltaTime, arrow->IsActive(), &temp, camera.GetPos());
+	ps->Update(deltaTime, &temp, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();
 
 	glm::vec3 pos = camera.GetPos();
