@@ -27,10 +27,11 @@ void ParticleSystem::Initialize()
 {
 	//Initiate random gen
 	std::random_device rd;
-	std::mt19937 mt(rd());
+	//std::mt19937 mt(rd());
+	//TODO: Fix seeds, right now xyz will get the same values every time
+	//we want to extract seed later so store in variable
+	std::mt19937 ma(15);
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
-
-	int s = mt.default_seed;
 
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
@@ -40,9 +41,9 @@ void ParticleSystem::Initialize()
 		
 		Particle p;
 		p.pos = m_position;
-		float x = dist(mt);
-		float y = dist(mt);
-		float z = dist(mt);
+		float x = dist(ma);
+		float y = dist(ma);
+		float z = dist(ma);
 		p.rdir = glm::vec3(x, y, z);
 		p.ctime = m_particleinfo->lifetime;
 		p.vel = glm::vec3(0.0f, 0.0f, 0.0f);

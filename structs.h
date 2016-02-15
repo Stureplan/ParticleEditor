@@ -27,6 +27,7 @@ struct ParticleSystemData
 	float gravity;
 	bool continuous;
 	bool omni;
+	int seed;
 };
 
 //TODO: Separate ParticleSystemData from PlayerData

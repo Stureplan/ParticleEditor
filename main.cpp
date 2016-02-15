@@ -275,6 +275,7 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(float);				//float gravity
 	totalsize += sizeof(bool);				//bool continuous
 	totalsize += sizeof(bool);				//bool omni
+	//TODO: write seed
 
 	//Opens file
 	std::ofstream file;
@@ -462,8 +463,6 @@ void TW_CALL Import(void *clientData)
 		return;
 	}
 
-
-
 	TextureData exTD;
 	exTD.width = x;
 	exTD.height = y;
@@ -471,8 +470,8 @@ void TW_CALL Import(void *clientData)
 	CURRENT_TEXTURE = CheckTexture(exTD.texturename);
 	SetLabel();
 
-
 	arrow->SetActive(!exPS.omni);
+	//TODO: make sure seed is imported into exTD
 	ui_particle->Rebuild(&exTD);
 	ps->Retexture(&exTD);
 	ps->Rebuild(&exPS);
