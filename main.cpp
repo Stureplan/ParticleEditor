@@ -174,8 +174,16 @@ void TW_CALL Export(void *clientData)
 
 		if (SUCCEEDED(hr))
 		{
+			TCHAR NPath[MAX_PATH];
+			GetCurrentDirectory(MAX_PATH, NPath);
+			
+			IShellItem* pFolder;
+
+			SHCreateItemFromParsingName(NPath, NULL, IID_PPV_ARGS(&pFolder));
+
 			//Set attributes
 			pFile->SetDefaultExtension(L"ps");
+			pFile->SetFolder(pFolder);
 			pFile->SetFileTypes(1, &rgSpec);
 
 			//Display dialog system
