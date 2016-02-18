@@ -84,6 +84,7 @@ std::string CURRENT_LABEL;
 float		CURRENT_EMISSION = 0.0f;
 float		CURRENT_EMISSION_DIFF = 0.0f;
 float		CURRENT_LIFETIME = 1.0f;
+int			CURRENT_SEED = 0;
 bool		CURRENT_REPEAT = true;
 bool		RENDER_DIR = true;
 bool press = false;
@@ -264,6 +265,7 @@ void TW_CALL Export(void *clientData)
 	//Texturesize is how long the string is * bytes
 	texturesize = strlen(texture) * sizeof(const char);
 	totalsize = texturesize;				//texturename
+	//totalsize += sizeof(ParticleSystemData);
 	totalsize += sizeof(float) * 3;			//glm::vec3 dir
 	totalsize += sizeof(float);				//float width
 	totalsize += sizeof(float);				//float height
@@ -273,8 +275,9 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(float);				//float force
 	totalsize += sizeof(float);				//float drag
 	totalsize += sizeof(float);				//float gravity
-	totalsize += sizeof(bool);				//bool continuous
-	totalsize += sizeof(bool);				//bool omni
+	totalsize += sizeof(int);				//bool continuous
+	totalsize += sizeof(int);				//bool omni
+	totalsize += sizeof(int);				//int seed
 	//TODO: write seed
 
 	//Opens file
@@ -296,10 +299,66 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->force), sizeof(float));
 	file.write(reinterpret_cast<char*>(&ps_temp->drag), sizeof(float));
 	file.write(reinterpret_cast<char*>(&ps_temp->gravity), sizeof(float));
-	file.write(reinterpret_cast<char*>(&ps_temp->continuous), sizeof(bool));
-	file.write(reinterpret_cast<char*>(&ps_temp->omni), sizeof(float));
-	//file.write(seed sizeof(int))
+	file.write(reinterpret_cast<char*>(&ps_temp->continuous), sizeof(int));
+	file.write(reinterpret_cast<char*>(&ps_temp->omni), sizeof(int));
+	file.write(reinterpret_cast<char*>(&ps_temp->seed), sizeof(int));
 	file.close();
+
+
+	//Write screenshot
+/*	int x1, y1, x2, y2, w, h;
+
+	// get screen dimensions
+	x1 = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	y1 = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	x2 = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	y2 = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	w = x2 - x1;
+	h = y2 - y1;
+*/
+
+	//TODO: write from glReadPixels() to const std::vector<char>& lpBits 
+	// Create a new file for writing
+	/*std::ofstream pFile(szPathName, std::ios_base::binary);
+	if (!pFile.is_open()) 
+	{
+		return false;
+	}
+
+	BITMAPINFOHEADER bmih;
+	bmih.biSize = sizeof(BITMAPINFOHEADER);
+	bmih.biWidth = w;
+	bmih.biHeight = h;
+	bmih.biPlanes = 1;
+	bmih.biBitCount = 24;
+	bmih.biCompression = BI_RGB;
+	bmih.biSizeImage = w * h * 3;
+
+	BITMAPFILEHEADER bmfh;
+	int nBitsOffset = sizeof(BITMAPFILEHEADER) + bmih.biSize;
+	LONG lImageSize = bmih.biSizeImage;
+	LONG lFileSize = nBitsOffset + lImageSize;
+	bmfh.bfType = 'B' + ('M' << 8);
+	bmfh.bfOffBits = nBitsOffset;
+	bmfh.bfSize = lFileSize;
+	bmfh.bfReserved1 = bmfh.bfReserved2 = 0;
+
+	// Write the bitmap file header
+	pFile.write((const char*)&bmfh, sizeof(BITMAPFILEHEADER));
+	UINT nWrittenFileHeaderSize = pFile.tellp();
+
+	// And then the bitmap info header
+	pFile.write((const char*)&bmih, sizeof(BITMAPINFOHEADER));
+	UINT nWrittenInfoHeaderSize = pFile.tellp();
+
+	// Finally, write the image data itself
+	//-- the data represents our drawing
+	pFile.write(&lpBits[0], lpBits.size());
+	UINT nWrittenDIBDataSize = pFile.tellp();
+	pFile.close();
+
+	return true;*/
+
 }
 
 void TW_CALL Import(void *clientData)
@@ -415,8 +474,9 @@ void TW_CALL Import(void *clientData)
 	//Read Particle System
 	ParticleSystemData exPS;
 	file.read((char*)&exPS, sizeof(exPS));
-
+	//file.read((char*)&variable, sizeof(vartype));
 	file.close();
+
 
 	//File found and filename is fResult
 	Beep(400, 50);
@@ -438,6 +498,7 @@ void TW_CALL Import(void *clientData)
 	CURRENT_EMISSION = exPS.emission;
 	CURRENT_EMISSION_DIFF = exPS.emission;
 	CURRENT_LIFETIME = exPS.lifetime;
+	CURRENT_SEED = exPS.seed;
 
 	std::string name = "Data/Textures/";
 	name.append(f);
@@ -480,6 +541,7 @@ void TW_CALL Import(void *clientData)
 void TW_CALL Rebuild(void *clientData)
 {
 	temp.maxparticles = CURRENT_VTXCOUNT;
+	temp.seed = CURRENT_SEED;
 	ps->Rebuild(&temp);
 }
 
@@ -537,6 +599,7 @@ void InitializeGUI()
 	//TwAddVarRW(BarGUI, "Direction", TW_TYPE_DIR3F, &CURRENT_ROT, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
+	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 	
@@ -613,6 +676,7 @@ void CreateObjects()
 	temp.force = 5.0f;
 	temp.drag = 0.0f;
 	temp.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
+	temp.seed = 0;
 	temp.continuous = true;
 	temp.omni = false;
 
@@ -626,6 +690,7 @@ void CreateObjects()
 	CURRENT_EMISSION = temp.emission;
 	CURRENT_EMISSION_DIFF = temp.emission;
 	CURRENT_LIFETIME = temp.lifetime;
+	CURRENT_SEED = temp.seed;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
@@ -745,6 +810,7 @@ void Update (double deltaTime)
 	temp.emission	= CURRENT_EMISSION;
 	temp.lifetime	= CURRENT_LIFETIME;
 	temp.continuous = CURRENT_REPEAT;
+	temp.seed		= CURRENT_SEED;
 	temp.omni		= !arrow->IsActive();
 
 	ps->Update(deltaTime, &temp, camera.GetPos());

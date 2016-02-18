@@ -14,6 +14,8 @@ struct ExportHeader
 	int texturesize;
 };
 
+
+
 struct ParticleSystemData
 {
 	glm::vec3 dir;
@@ -25,8 +27,8 @@ struct ParticleSystemData
 	float force;
 	float drag;
 	float gravity;
-	bool continuous;
-	bool omni;
+	int continuous;
+	int omni;
 	int seed;
 };
 
