@@ -175,11 +175,15 @@ void TW_CALL Export(void *clientData)
 		if (SUCCEEDED(hr))
 		{
 			TCHAR NPath[MAX_PATH];
+			TCHAR AddedFolder[MAX_PATH] = L"\\Exports";
+			TCHAR TotalPath[MAX_PATH];
 			GetCurrentDirectory(MAX_PATH, NPath);
-			
-			IShellItem* pFolder;
 
-			SHCreateItemFromParsingName(NPath, NULL, IID_PPV_ARGS(&pFolder));
+
+			_stprintf(TotalPath, _T("%s%s\n"), NPath, AddedFolder);
+
+			IShellItem* pFolder;
+			SHCreateItemFromParsingName(TotalPath, NULL, IID_PPV_ARGS(&pFolder));
 
 			//Set attributes
 			pFile->SetDefaultExtension(L"ps");
@@ -208,8 +212,10 @@ void TW_CALL Export(void *clientData)
 					}
 					pItem->Release();
 				}
+				pFolder->Release();
 				pFile->Release();
 			}
+
 			CoUninitialize();
 		}
 	}
@@ -226,7 +232,7 @@ void TW_CALL Export(void *clientData)
 		Beep(400, 50);
 		int msg = MessageBox(
 			NULL,
-			L"No file selected! Import canceled.",
+			L"No file specified! Export canceled.",
 			L"Error",
 			MB_ICONERROR | MB_OK);
 		return;
