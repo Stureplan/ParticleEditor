@@ -103,6 +103,7 @@ Object* arrow;
 Object* sphere;
 Object* plane;
 Object* ui_particle;
+Object* ui_keys;
 ParticleSystem* ps;
 Camera camera;
 TwBar* BarGUI;
@@ -656,7 +657,7 @@ void InitializeGUI()
 
 	TwDefine(" Controls position='0 0'");
 	TwDefine(" Controls color='0 0 0'");
-	TwDefine(" Controls size='250 250'");
+	TwDefine(" Controls size='250 300'");
 	TwDefine(" Controls refresh=0.1");
 	TwDefine(" Controls movable=false");
 	TwDefine(" Controls resizable=false");
@@ -746,6 +747,11 @@ void CreateObjects()
 	wire_tex.width = 32;
 	wire_tex.height = 32;
 
+	TextureData keys_tex;
+	keys_tex.texturename = "Data/OBJ/Keybindings.png";
+	unsigned int x, y;
+	PNGSize(keys_tex.texturename, x, y);
+
 	temp.width = 0.20000f;
 	temp.height = 0.200000f;
 	temp.lifetime = 1.0f;
@@ -769,16 +775,21 @@ void CreateObjects()
 	CURRENT_EMISSION_DIFF = temp.emission;
 	CURRENT_LIFETIME = temp.lifetime;
 	CURRENT_SEED = temp.seed;
+	
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
 	plane	= new Object("Data/OBJ/plane.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 
 	ui_particle = new Object("Data/OBJ/particle.obj", &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), program, true);
+	ui_keys		= new Object("Data/OBJ/particle.obj", &keys_tex, glm::vec3(0, 0, 0), program, true);
 	ps			= new ParticleSystem(&temp,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
 	ui_particle->Translate (glm::vec3 (5.8f, 0.3f, 0.0f));
+
+	ui_keys->Rescale(glm::vec3(0.258f, 0.466f, 1.0f));
+	ui_keys->Translate(glm::vec3(-3.3f, 0.9f, 0.0f));
 
 	//Initial rot (direction) values
 	CURRENT_ROT = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -874,6 +885,7 @@ void Update (double deltaTime)
 	sphere		->Update();
 	arrow		->Update();	//updates model matrix (T * R * S compute)
 	ui_particle	->Update ();
+	ui_keys		->Update();
 
 	//Update shader variables
 	CameraPos = camera.GetPos();
@@ -979,6 +991,14 @@ void Render()
 	MVP = Model;
 	glUniformMatrix4fv (MatrixID, 1, GL_FALSE, &MVP[0][0]);
 	ui_particle->Render ();
+
+	//Render keybindings
+	Model = glm::mat4(1.0f);
+	Model = ui_keys->GetModel();
+
+	MVP = Model;
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+	ui_keys->Render();
 
 }
 
