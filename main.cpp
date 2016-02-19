@@ -657,7 +657,7 @@ void InitializeGUI()
 
 	TwDefine(" Controls position='0 0'");
 	TwDefine(" Controls color='0 0 0'");
-	TwDefine(" Controls size='250 300'");
+	TwDefine(" Controls size='250 320'");
 	TwDefine(" Controls refresh=0.1");
 	TwDefine(" Controls movable=false");
 	TwDefine(" Controls resizable=false");
