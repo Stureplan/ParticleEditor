@@ -183,7 +183,7 @@ void TW_CALL Export(void *clientData)
 			_stprintf(TotalPath, _T("%s%s\n"), NPath, AddedFolder);
 
 			IShellItem* pFolder;
-			SHCreateItemFromParsingName(TotalPath, NULL, IID_PPV_ARGS(&pFolder));
+			hr = SHCreateItemFromParsingName(TotalPath, NULL, IID_PPV_ARGS(&pFolder));
 
 			//Set attributes
 			pFile->SetDefaultExtension(L"ps");
@@ -209,13 +209,13 @@ void TW_CALL Export(void *clientData)
 					{
 						fResult = WCHAR_TO_STRING(fPath);
 						CoTaskMemFree(fPath);
+
+
 					}
 					pItem->Release();
 				}
-				pFolder->Release();
 				pFile->Release();
 			}
-
 			CoUninitialize();
 		}
 	}
@@ -559,37 +559,11 @@ void TW_CALL Rebuild(void *clientData)
 	ps->Rebuild(&temp);
 }
 
-int RandInt(int a, int b)
-{
-	//Initiate random gen
-	std::random_device rd;
-	std::mt19937 mt(rd());
 
-	std::uniform_int_distribution<int32_t> temp(a, b);
-	
-	return temp(mt);
-}
-
-float RandFloat(float a, float b)
-{
-	//Initiate random gen
-	std::random_device rd;
-	std::mt19937 mt(rd());
-
-	std::uniform_real_distribution<float> temp(a, b);
-
-	return temp(mt);
-}
 
 void TW_CALL Randomize(void *clientData)
 {
-	//Initiate random gen
-	std::random_device rd;
-	std::mt19937 mt(rd());
 
-
-	//Randomize maxparticles
-	temp.maxparticles = RandInt(1, 2000);
 	
 	//Randomize emission delay
 	temp.emission = RandFloat(0.0f, 0.2f);
@@ -597,6 +571,14 @@ void TW_CALL Randomize(void *clientData)
 	if (explosion == 1)
 	{
 		temp.emission = 0.0f;
+
+		//Randomize maxparticles
+		temp.maxparticles = RandInt(1, 2000);
+	}
+	else
+	{
+		//Randomize maxparticles
+		temp.maxparticles = RandInt(1, 250);
 	}
 
 
@@ -620,9 +602,9 @@ void TW_CALL Randomize(void *clientData)
 
 	//Randomize texture
 	CURRENT_TEXTURE = RandInt(0, texturenames.size()-1);
-	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
-	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
 
+	//Randomize seed
+	temp.seed = RandInt(0, 1000);
 
 	CURRENT_VTXCOUNT = temp.maxparticles;
 	CURRENT_EMISSION = temp.emission;
@@ -632,8 +614,12 @@ void TW_CALL Randomize(void *clientData)
 	CURRENT_ROT = temp.dir;
 	CURRENT_FORCE = temp.force;
 	CURRENT_GRAVITY = temp.gravity;
+	CURRENT_SEED = temp.seed;
 
 
+	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
+	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
+	ps->Rebuild(&temp);
 	//TODO: Replace "CURRENT_" with ParticleSystemData
 }
 
@@ -688,7 +674,6 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROT.z, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Force:", TW_TYPE_FLOAT, &CURRENT_FORCE, "min=-10.0f max=10.0f step=0.01");
 	TwAddVarRW(BarGUI, "Drag:", TW_TYPE_FLOAT, &CURRENT_DRAG, "min=0.0f max=10.0f step=0.01");
-	//TwAddVarRW(BarGUI, "Direction", TW_TYPE_DIR3F, &CURRENT_ROT, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
 	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");

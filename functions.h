@@ -5,6 +5,29 @@
 #include <fstream>
 #include <vector>
 #include <winsock.h>
+#include <random>
+
+int RandInt(int a, int b)
+{
+	//Initiate random gen
+	std::random_device rd;
+	std::mt19937 mt(rd());
+
+	std::uniform_int_distribution<int32_t> temp(a, b);
+
+	return temp(mt);
+}
+
+float RandFloat(float a, float b)
+{
+	//Initiate random gen
+	std::random_device rd;
+	std::mt19937 mt(rd());
+
+	std::uniform_real_distribution<float> temp(a, b);
+
+	return temp(mt);
+}
 
 bool PNGSize(const char* fileName, unsigned int &x, unsigned int &y)
 {
