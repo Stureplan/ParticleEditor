@@ -559,6 +559,84 @@ void TW_CALL Rebuild(void *clientData)
 	ps->Rebuild(&temp);
 }
 
+int RandInt(int a, int b)
+{
+	//Initiate random gen
+	std::random_device rd;
+	std::mt19937 mt(rd());
+
+	std::uniform_int_distribution<int32_t> temp(a, b);
+	
+	return temp(mt);
+}
+
+float RandFloat(float a, float b)
+{
+	//Initiate random gen
+	std::random_device rd;
+	std::mt19937 mt(rd());
+
+	std::uniform_real_distribution<float> temp(a, b);
+
+	return temp(mt);
+}
+
+void TW_CALL Randomize(void *clientData)
+{
+	//Initiate random gen
+	std::random_device rd;
+	std::mt19937 mt(rd());
+
+
+	//Randomize maxparticles
+	temp.maxparticles = RandInt(1, 2000);
+	
+	//Randomize emission delay
+	temp.emission = RandFloat(0.0f, 0.2f);
+	int explosion = RandInt(0, 1);
+	if (explosion == 1)
+	{
+		temp.emission = 0.0f;
+	}
+
+
+	//Randomize lifetime
+	temp.lifetime = RandFloat(0.1f, 2.0f);
+
+	//Randomize scale
+	temp.width = RandFloat(0.1f, 0.5f);
+	temp.height = RandFloat(0.1f, 0.5f);
+
+	//Randomize direction
+	temp.dir.x = RandFloat(-1.0f, 1.0f);
+	temp.dir.y = RandFloat(-1.0f, 1.0f);
+	temp.dir.z = RandFloat(-1.0f, 1.0f);
+
+	//Randomize force
+	temp.force = RandFloat(-5.0f, 10.0f);
+
+	//Randomize gravity
+	temp.gravity = RandFloat(-1.0f, 1.0f);
+
+	//Randomize texture
+	CURRENT_TEXTURE = RandInt(0, texturenames.size()-1);
+	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
+	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
+
+
+	CURRENT_VTXCOUNT = temp.maxparticles;
+	CURRENT_EMISSION = temp.emission;
+	CURRENT_LIFETIME = temp.lifetime;
+	CURRENT_SCALE.x = temp.width;
+	CURRENT_SCALE.y = temp.height;
+	CURRENT_ROT = temp.dir;
+	CURRENT_FORCE = temp.force;
+	CURRENT_GRAVITY = temp.gravity;
+
+
+	//TODO: Replace "CURRENT_" with ParticleSystemData
+}
+
 void TW_CALL PausePlay(void* clientData)
 {
 	if (ps->IsPlaying() == true)
@@ -620,7 +698,8 @@ void InitializeGUI()
 	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
 	TwAddButton(BarControls, "Import", Import, NULL, " label='Import Particle System' ");
-	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
+	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System'");
+	TwAddButton(BarControls, "Randomize", Randomize, NULL, " label='Randomize Particle System' key=r");
 	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
 	SetLabel ();
