@@ -667,8 +667,8 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Emission Delay:", TW_TYPE_FLOAT, &CURRENT_EMISSION, "min=0.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=5.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
-	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=5.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=5.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROT.x, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROT.y, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROT.z, "min=-1.0f max=1.0f step=0.05f");
@@ -683,8 +683,8 @@ void InitializeGUI()
 	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
 	TwAddButton(BarControls, "Import", Import, NULL, " label='Import Particle System' ");
-	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System'");
-	TwAddButton(BarControls, "Randomize", Randomize, NULL, " label='Randomize Particle System' key=r");
+	TwAddButton(BarControls, "Rebuild", Rebuild, NULL, " label='Rebuild Particle System' key=r");
+	TwAddButton(BarControls, "Randomize", Randomize, NULL, " label='Randomize Particle System' key=e");
 	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
 	SetLabel ();

@@ -97,6 +97,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	std::mt19937 mt(m_particleinfo->seed);
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 	
+	
 	//Fill the vertex data vector with [maxparticles] vertices
 	for (int i = 0; i < m_particleinfo->maxparticles; i++)
 	{
