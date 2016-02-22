@@ -85,6 +85,7 @@ float		CURRENT_EMISSION = 0.0f;
 float		CURRENT_EMISSION_DIFF = 0.0f;
 float		CURRENT_LIFETIME = 1.0f;
 int			CURRENT_SEED = 0;
+float		CURRENT_SPREAD = 0.0f;
 bool		CURRENT_REPEAT = true;
 bool		RENDER_DIR = true;
 bool press = false;
@@ -293,6 +294,7 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(int);				//bool continuous
 	totalsize += sizeof(int);				//bool omni
 	totalsize += sizeof(int);				//int seed
+	totalsize += sizeof(float);				//float spread
 	//TODO: write seed
 
 	//Opens file
@@ -317,6 +319,7 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->continuous), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->omni), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->seed), sizeof(int));
+	file.write(reinterpret_cast<char*>(&ps_temp->spread), sizeof(float));
 	file.close();
 
 
@@ -514,6 +517,7 @@ void TW_CALL Import(void *clientData)
 	CURRENT_EMISSION_DIFF = exPS.emission;
 	CURRENT_LIFETIME = exPS.lifetime;
 	CURRENT_SEED = exPS.seed;
+	CURRENT_SPREAD = exPS.spread;
 
 	std::string name = "Data/Textures/";
 	name.append(f);
@@ -564,8 +568,6 @@ void TW_CALL Rebuild(void *clientData)
 
 void TW_CALL Randomize(void *clientData)
 {
-
-	
 	//Randomize emission delay
 	temp.emission = RandFloat(0.0f, 0.2f);
 	int explosion = RandInt(0, 1);
@@ -607,6 +609,9 @@ void TW_CALL Randomize(void *clientData)
 	//Randomize seed
 	temp.seed = RandInt(0, 1000);
 
+	//Randomize spread
+	temp.spread = RandFloat(0.0f, 1.0f);
+
 	CURRENT_VTXCOUNT = temp.maxparticles;
 	CURRENT_EMISSION = temp.emission;
 	CURRENT_LIFETIME = temp.lifetime;
@@ -616,6 +621,7 @@ void TW_CALL Randomize(void *clientData)
 	CURRENT_FORCE = temp.force;
 	CURRENT_GRAVITY = temp.gravity;
 	CURRENT_SEED = temp.seed;
+	CURRENT_SPREAD = temp.spread;
 
 
 	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
@@ -678,6 +684,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
 	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");
+	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_SPREAD, "min=0.0f max=1.0f step=0.01f");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 	
@@ -763,6 +770,7 @@ void CreateObjects()
 	temp.seed = 0;
 	temp.continuous = true;
 	temp.omni = false;
+	temp.spread = 0.0f;
 
 	CURRENT_SCALE.x = temp.width;
 	CURRENT_SCALE.y = temp.height;
@@ -775,7 +783,7 @@ void CreateObjects()
 	CURRENT_EMISSION_DIFF = temp.emission;
 	CURRENT_LIFETIME = temp.lifetime;
 	CURRENT_SEED = temp.seed;
-	
+	CURRENT_SPREAD = temp.spread;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
@@ -902,6 +910,7 @@ void Update (double deltaTime)
 	temp.continuous = CURRENT_REPEAT;
 	temp.seed		= CURRENT_SEED;
 	temp.omni		= !arrow->IsActive();
+	temp.spread		= CURRENT_SPREAD;
 
 	ps->Update(deltaTime, &temp, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();

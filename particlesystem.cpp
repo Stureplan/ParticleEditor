@@ -198,7 +198,7 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 				if (!m_particleinfo->omni)
 				{
 					m_directions.at(i) = glm::normalize(glm::vec3(p.dir));
-					p.vel = m_particleinfo->dir * dT;
+					p.vel = (m_particleinfo->dir + (p.rdir * m_particleinfo->spread)) * dT;
 				}
 				else
 				{
