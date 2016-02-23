@@ -801,7 +801,7 @@ void CreateObjects()
 
 	//Initial rot (direction) values
 	CURRENT_ROT = glm::vec3(1.0f, 0.0f, 0.0f);
-
+	//TODO: Camera rotation around middle
 	//Rotate arrow once with direction
 	arrow->Rotate(CURRENT_ROT);
 }
