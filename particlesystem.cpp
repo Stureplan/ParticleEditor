@@ -27,8 +27,6 @@ void ParticleSystem::Initialize()
 {
 	//Initiate random gen
 	std::random_device rd;
-	//TODO: Fix seeds, right now xyz will get the same values every time
-	//we want to extract seed later so store in variable
 	std::mt19937 mt(m_particleinfo->seed);
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
@@ -212,8 +210,6 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 				glm::vec3 oldPos = p.pos;
 
 				//Add gravity
-				//TODO: Change p.pos.y to vel because we want to use the drag
-				//variable later.
 				p.pos.y += ((-9.81f + percent * 10) * m_particleinfo->gravity) * dT;
 
 				//Add the velocity to the position

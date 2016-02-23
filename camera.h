@@ -13,6 +13,7 @@ public:
 	void UpdateView	();
 	void SetPos		(glm::vec3);
 	void SetDir		(glm::vec3);
+	void SetView	(glm::mat4);
 
 	glm::vec3 GetPos ();
 	glm::mat4 GetView();

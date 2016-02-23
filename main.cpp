@@ -295,7 +295,6 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(int);				//bool omni
 	totalsize += sizeof(int);				//int seed
 	totalsize += sizeof(float);				//float spread
-	//TODO: write seed
 
 	//Opens file
 	std::ofstream file;
@@ -700,7 +699,7 @@ void InitializeGUI()
 
 void InitializeCamera ()
 {
-	camera.Initialize (glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, -1.0f), width, height);
+	camera.Initialize (glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), width, height);
 	View	   = camera.GetView ();
 	Projection = camera.GetProj ();
 	Ortho	   = camera.GetOrtho ();
@@ -802,6 +801,8 @@ void CreateObjects()
 	//Initial rot (direction) values
 	CURRENT_ROT = glm::vec3(1.0f, 0.0f, 0.0f);
 	//TODO: Camera rotation around middle
+	//TODO: Randomize seed
+
 	//Rotate arrow once with direction
 	arrow->Rotate(CURRENT_ROT);
 }
@@ -835,12 +836,28 @@ void Update (double deltaTime)
 		input_current = input_current - (float) deltaTime;
 	}
 
-/*	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
+	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
 	{
-		rot = GetInputDir(deltaTime);
-		arrow->Rotate(rot);
+		glm::mat4 cam = camera.GetView();
+		glm::vec3 pos = camera.GetPos();
+
+		GetCursorPos(&p);
+		ScreenToClient(windowReference, &p);
+		p.x = width / 2;
+		p.y = height / 2;
+
+		ClientToScreen(windowReference, &p);
+		SetCursorPos(p.x, p.y);
+
+
+		cam = glm::rotate(cam, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		//cam = glm::lookAt(pos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+		camera.SetPos(pos);
+		camera.SetView(cam);
 	}
-	*/
+
 
 	if (GetAsyncKeyState (0x54) & 0x8000 && input_current <= 0.0f )
 	{
@@ -922,7 +939,6 @@ void Update (double deltaTime)
 
 	camera.SetPos (pos);
 	camera.SetDir (dir);
-	camera.UpdateView ();
 }
 
 void Render()

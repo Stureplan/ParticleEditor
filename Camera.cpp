@@ -1,11 +1,11 @@
 #include "camera.h"
 
-void Camera::Initialize (glm::vec3 pos, glm::vec3 dir, int width, int height)
+void Camera::Initialize (glm::vec3 pos, glm::vec3 at, int width, int height)
 {
 	View = glm::lookAt
 	(
 		pos,					//pos
-		dir,					//at
+		at,						//at
 		glm::vec3 (0, 1, 0)		//up
 	);
 
@@ -46,6 +46,11 @@ void Camera::SetPos (glm::vec3 pos)
 void Camera::SetDir (glm::vec3 dir)
 {
 	m_direction = dir;
+}
+
+void Camera::SetView (glm::mat4 v)
+{
+	View = v;
 }
 
 glm::vec3 Camera::GetPos ()
