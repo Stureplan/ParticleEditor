@@ -31,6 +31,7 @@ struct ParticleSystemData
 	int omni;
 	int seed;
 	float spread;
+	int glow;
 };
 
 //TODO: Separate ParticleSystemData from PlayerData

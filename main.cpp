@@ -87,6 +87,7 @@ float		CURRENT_LIFETIME = 1.0f;
 int			CURRENT_SEED = 0;
 float		CURRENT_SPREAD = 0.0f;
 bool		CURRENT_REPEAT = true;
+bool		CURRENT_GLOW = false;
 bool		RENDER_DIR = true;
 bool press = false;
 glm::vec3	CURRENT_ROT;
@@ -295,6 +296,7 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(int);				//bool omni
 	totalsize += sizeof(int);				//int seed
 	totalsize += sizeof(float);				//float spread
+	totalsize += sizeof(int);				//int glow (0-1)
 
 	//Opens file
 	std::ofstream file;
@@ -319,6 +321,7 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->omni), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->seed), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->spread), sizeof(float));
+	file.write(reinterpret_cast<char*>(&ps_temp->glow), sizeof(int));
 	file.close();
 
 
@@ -517,6 +520,7 @@ void TW_CALL Import(void *clientData)
 	CURRENT_LIFETIME = exPS.lifetime;
 	CURRENT_SEED = exPS.seed;
 	CURRENT_SPREAD = exPS.spread;
+	CURRENT_GLOW = exPS.glow;
 
 	std::string name = "Data/Textures/";
 	name.append(f);
@@ -622,6 +626,8 @@ void TW_CALL Randomize(void *clientData)
 	CURRENT_SEED = temp.seed;
 	CURRENT_SPREAD = temp.spread;
 
+	temp.glow = CURRENT_GLOW;
+
 
 	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
 	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
@@ -684,6 +690,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");
 	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");
 	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_SPREAD, "min=0.0f max=1.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_GLOW, "");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 	
@@ -770,6 +777,7 @@ void CreateObjects()
 	temp.continuous = true;
 	temp.omni = false;
 	temp.spread = 0.0f;
+	temp.glow = false;
 
 	CURRENT_SCALE.x = temp.width;
 	CURRENT_SCALE.y = temp.height;
@@ -783,6 +791,7 @@ void CreateObjects()
 	CURRENT_LIFETIME = temp.lifetime;
 	CURRENT_SEED = temp.seed;
 	CURRENT_SPREAD = temp.spread;
+	CURRENT_GLOW = temp.glow;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
@@ -793,7 +802,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&temp,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.7f, -0.2f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.7f, -0.4f, 0.0f));
 
 	ui_keys->Rescale(glm::vec3(0.258f, 0.466f, 1.0f));
 	ui_keys->Translate(glm::vec3(-3.3f, 0.9f, 0.0f));
@@ -928,6 +937,7 @@ void Update (double deltaTime)
 	temp.seed		= CURRENT_SEED;
 	temp.omni		= !arrow->IsActive();
 	temp.spread		= CURRENT_SPREAD;
+	temp.glow		= CURRENT_GLOW;
 
 	ps->Update(deltaTime, &temp, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();
