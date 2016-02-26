@@ -89,6 +89,7 @@ int			CURRENT_SEED = 0;
 float		CURRENT_SPREAD = 0.0f;
 bool		CURRENT_REPEAT = true;
 bool		CURRENT_GLOW = false;
+int			CURRENT_SCALEDIR = 0;
 bool		RENDER_DIR = true;
 bool press = false;
 glm::vec3	CURRENT_ROT;
@@ -298,6 +299,7 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(int);				//int seed
 	totalsize += sizeof(float);				//float spread
 	totalsize += sizeof(int);				//int glow (0-1)
+	totalsize += sizeof(int);				//int scaledir (-1/0/1)
 
 	//Opens file
 	std::ofstream file;
@@ -323,6 +325,7 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->seed), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->spread), sizeof(float));
 	file.write(reinterpret_cast<char*>(&ps_temp->glow), sizeof(int));
+	file.write(reinterpret_cast<char*>(&ps_temp->scaleDir), sizeof(int));
 	file.close();
 
 
@@ -522,6 +525,7 @@ void TW_CALL Import(void *clientData)
 	CURRENT_SEED = exPS.seed;
 	CURRENT_SPREAD = exPS.spread;
 	CURRENT_GLOW = exPS.glow;
+	CURRENT_SCALEDIR = exPS.scaleDir;
 
 	std::string name = "Data/Textures/";
 	name.append(f);
@@ -626,6 +630,7 @@ void TW_CALL Randomize(void *clientData)
 	CURRENT_GRAVITY = temp.gravity;
 	CURRENT_SEED = temp.seed;
 	CURRENT_SPREAD = temp.spread;
+	CURRENT_SCALEDIR = temp.scaleDir;
 
 	temp.glow = CURRENT_GLOW;
 
@@ -692,6 +697,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");
 	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_SPREAD, "min=0.0f max=1.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_GLOW, "");
+	TwAddVarRW(BarGUI, "Scale Dir:", TW_TYPE_INT16, &CURRENT_SCALEDIR, "min=-1 max=1");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 	
@@ -780,6 +786,7 @@ void CreateObjects()
 	temp.omni = false;
 	temp.spread = 0.0f;
 	temp.glow = false;
+	temp.scaleDir = 0;
 
 	CURRENT_SCALE.x = temp.width;
 	CURRENT_SCALE.y = temp.height;
@@ -794,6 +801,7 @@ void CreateObjects()
 	CURRENT_SEED = temp.seed;
 	CURRENT_SPREAD = temp.spread;
 	CURRENT_GLOW = temp.glow;
+	CURRENT_SCALEDIR = temp.scaleDir;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
@@ -940,6 +948,7 @@ void Update (double deltaTime)
 	temp.omni		= !arrow->IsActive();
 	temp.spread		= CURRENT_SPREAD;
 	temp.glow		= CURRENT_GLOW;
+	temp.scaleDir	= CURRENT_SCALEDIR;
 
 	ps->Update(deltaTime, &temp, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();
