@@ -89,8 +89,8 @@ int			CURRENT_SEED = 0;
 float		CURRENT_SPREAD = 0.0f;
 bool		CURRENT_REPEAT = true;
 bool		CURRENT_GLOW = false;
-int			CURRENT_SCALEDIR = 0;
 bool		RENDER_DIR = true;
+int			CURRENT_SCALEDIR = 0;
 bool press = false;
 glm::vec3	CURRENT_ROT;
 
@@ -299,7 +299,7 @@ void TW_CALL Export(void *clientData)
 	totalsize += sizeof(int);				//int seed
 	totalsize += sizeof(float);				//float spread
 	totalsize += sizeof(int);				//int glow (0-1)
-	totalsize += sizeof(int);				//int scaledir (-1/0/1)
+	totalsize += sizeof(int);				//int scaleDir (-1/0/1)
 
 	//Opens file
 	std::ofstream file;
@@ -620,6 +620,8 @@ void TW_CALL Randomize(void *clientData)
 	//Randomize spread
 	temp.spread = RandFloat(0.0f, 1.0f);
 
+	temp.scaleDir = 0;
+
 	CURRENT_VTXCOUNT = temp.maxparticles;
 	CURRENT_EMISSION = temp.emission;
 	CURRENT_LIFETIME = temp.lifetime;
@@ -697,7 +699,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");
 	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_SPREAD, "min=0.0f max=1.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_GLOW, "");
-	TwAddVarRW(BarGUI, "Scale Dir:", TW_TYPE_INT16, &CURRENT_SCALEDIR, "min=-1 max=1");
+	TwAddVarRW(BarGUI, "Scale Dir:", TW_TYPE_INT32, &CURRENT_SCALEDIR, "min=-1 max=1");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 	
