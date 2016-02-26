@@ -52,6 +52,7 @@ GLuint ps_program = 0;
 GLuint ps_MatrixID;
 GLuint ps_CamID;
 GLuint ps_SizeID;
+GLuint ps_GlowID;
 
 GLuint ps_lprogram = 0;
 GLuint ps_lMatrixID;
@@ -679,7 +680,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Emission Delay:", TW_TYPE_FLOAT, &CURRENT_EMISSION, "min=0.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=5.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
-	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=10.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=20.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROT.x, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROT.y, "min=-1.0f max=1.0f step=0.05f");
@@ -723,6 +724,7 @@ void CreateShaders()
 	ps_MatrixID = glGetUniformLocation(ps_program, "MVP");
 	ps_CamID = glGetUniformLocation(ps_program, "cam");
 	ps_SizeID = glGetUniformLocation(ps_program, "size");
+	ps_GlowID = glGetUniformLocation(ps_program, "glow");
 	ps_lMatrixID = glGetUniformLocation(ps_lprogram, "MVP");
 
 	glClearColor (0.2f, 0.2f, 0.2f, 0.0f);
@@ -1007,6 +1009,7 @@ void Render()
 	glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
 	glUniform3fv(ps_CamID, 1, glm::value_ptr(CameraPos));
 	glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
+	glUniform1i(ps_GlowID, CURRENT_GLOW);
 	ps->Render();
 
 	//Enable this and comment out ps->Render() to render lightning between points.
