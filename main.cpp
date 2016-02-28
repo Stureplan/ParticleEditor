@@ -192,8 +192,8 @@ void RetexturePreview(std::string PSysName)
 	if (preview == NULL)
 	{
 		view = 1;
-		//GLuint ps2_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
-		CreateShaders();
+		GLuint ps2_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
+		//CreateShaders();
 		
 		//Read PS from PSysName
 		std::ifstream file;
@@ -239,8 +239,8 @@ void RetexturePreview(std::string PSysName)
 		exTD.height = y;
 		exTD.texturename = name.c_str();
 
-		ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0,0,-5), ps_program, ps_program);
-		camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 240, 240);
+		ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0,0,-5), ps2_program, ps2_program);
+		camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1280, 720);
 
 		View = camera.GetView();
 		Projection = camera.GetProj();
@@ -248,7 +248,7 @@ void RetexturePreview(std::string PSysName)
 
 		// Init GLFW
 		glfwInit();
-		glViewport(0, 0, 240, 240);
+		glViewport(0, 0, 1280, 720);
 
 
 		// Set all the required options for GLFW
@@ -262,9 +262,11 @@ void RetexturePreview(std::string PSysName)
 		glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
 		glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
-		preview = glfwCreateWindow(240, 240, "Preview", nullptr, nullptr);
-		glfwMakeContextCurrent(preview);
 		
+		preview = glfwCreateWindow(1280, 720, "Preview", nullptr, window);
+		glfwMakeContextCurrent(preview);
+		glfwSwapInterval(1);
+		glfwShowWindow(preview);
 		glewInit();
 		glewExperimental = true;
 
@@ -284,8 +286,7 @@ void RetexturePreview(std::string PSysName)
 
 			View = camera.GetView();
 
-
-			glUseProgram(ps_program);
+			glUseProgram(ps2_program);
 			glm::mat4 VP = glm::mat4(1.0f);
 			VP = Projection * View;
 			glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
@@ -294,10 +295,10 @@ void RetexturePreview(std::string PSysName)
 			glUniform1i(ps_GlowID, CURRENT_GLOW);
 			ps2->Render();
 
-
 			// Swap the screen buffers
 			glfwSwapBuffers(preview);
 			glfwPollEvents();
+			glfwWaitEvents();
 
 //			glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
 
@@ -960,7 +961,6 @@ void SetViewport(HWND hwnd)
 {
 	//windowReference = hwnd;
 	glViewport(0, 0, width, height);
-
 }
 
 glm::vec3 GetInputDir (double deltaTime)
