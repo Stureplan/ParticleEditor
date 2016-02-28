@@ -7,6 +7,41 @@
 #include <winsock.h>
 #include <random>
 
+enum NOISE
+{
+	SUCCESS,
+	FAILURE
+};
+
+
+void BeepNoise(NOISE type)
+{
+	switch (type)
+	{
+	case NOISE::SUCCESS:
+		//Positive noise
+		Beep(400, 50);
+		Beep(500, 50);
+		Beep(600, 50);
+		Beep(700, 50);
+		Beep(800, 50);
+		Beep(900, 50);
+		Beep(1000, 50);
+		break;
+
+	case NOISE::FAILURE:
+		//Negative noise
+		Beep(1000, 50);
+		Beep(900, 50);
+		Beep(800, 50);
+		Beep(700, 50);
+		Beep(600, 50);
+		Beep(500, 50);
+		Beep(400, 50);
+		break;
+	}
+}
+
 int RandInt(int a, int b)
 {
 	//Initiate random gen

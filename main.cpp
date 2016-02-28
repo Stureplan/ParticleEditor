@@ -17,13 +17,13 @@
 #include <glfw3.h>
 #include <iostream>
 #include <fstream>
-#include <shobjidl.h> 
-
+#include <shobjidl.h>
 
 
 //Additional includes
 #include "structs.h"
 #include "functions.h"
+#include "events.h"
 
 //Custom classes
 #include "camera.h"
@@ -39,10 +39,14 @@ using namespace glm;
 int width = 1280;
 int height = 720;
 extern GLFWwindow* window = glfwCreateWindow(width, height, "Test", NULL, NULL);
+GLFWwindow* preview;
 HWND InitWindow(HINSTANCE hInstance);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 HGLRC CreateOpenGLContext(HWND wndHandle);
 HWND windowReference;
+
+//Window 2
+int view = 1;
 
 //Pointer variables
 GLuint program = 0;
@@ -120,6 +124,8 @@ float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
 float MoveSpeed = 5.0f;
 
+std::string testb;
+
 void SetFPS(int fps)
 {
 	CURRENT_FPS = fps;
@@ -159,6 +165,79 @@ void SetLabel()
 	TwDefine (tw.c_str());
 }
 
+void SetPSString(std::string PSysName)
+{
+	testb = PSysName;
+}
+
+void RetexturePreview(std::string PSysName)
+{
+	if (preview == NULL)
+	{
+		view = 1;
+		std::string test = PSysName;
+
+		// Init GLFW
+		glfwInit();
+		// Set all the required options for GLFW
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+		// Create a GLFWwindow object that we can use for GLFW's functions
+		glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
+		glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
+		preview = glfwCreateWindow(240, 240, "Preview", nullptr, nullptr);
+		glfwMakeContextCurrent(preview);
+		glViewport(0, 0, 240, 240);
+		
+		HMONITOR monitor = MonitorFromWindow(windowReference, NULL);
+		MONITORINFO info;
+		info.cbSize = sizeof(MONITORINFO);
+		GetMonitorInfo(monitor, &info);		//store monitor res info
+		glfwSetWindowPos(preview, info.rcMonitor.right-250, info.rcMonitor.bottom-300);
+	
+		//set real window ref
+		//SetFocus(windowReference);
+		bool should = true;
+
+		while (view != 0)
+		{
+			//Listen for events
+			glfwPollEvents();
+			
+			// Render
+			// Clear the colorbuffer
+			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			// Swap the screen buffers
+			glfwSwapBuffers(preview);
+			glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
+
+			POINT pt;
+			GetCursorPos(&pt);
+			glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
+
+			if (glfwGetKey(preview, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE && PSysName != testb)
+			{
+				view = 0;
+			}
+		}
+
+		glfwTerminate();
+		preview = NULL;
+
+	}
+
+
+
+
+
+}
+
 void TW_CALL Export(void *clientData)
 {
 	std::string fResult;
@@ -185,7 +264,7 @@ void TW_CALL Export(void *clientData)
 			GetCurrentDirectory(MAX_PATH, NPath);
 
 
-			_stprintf(TotalPath, _T("%s%s\n"), NPath, AddedFolder);
+			_stprintf(TotalPath, _T("%s%s"), NPath, AddedFolder);
 
 			IShellItem* pFolder;
 			hr = SHCreateItemFromParsingName(TotalPath, NULL, IID_PPV_ARGS(&pFolder));
@@ -208,7 +287,7 @@ void TW_CALL Export(void *clientData)
 				{
 					//Filepath from file
 					LPWSTR fPath;
-					hr = pItem->GetDisplayName(SIGDN_NORMALDISPLAY, &fPath);
+					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &fPath);
 
 					if (SUCCEEDED(hr))
 					{
@@ -228,13 +307,7 @@ void TW_CALL Export(void *clientData)
 	if (fResult.size() <= 0)
 	{
 		//No file was selected
-		Beep(1000, 50);
-		Beep(900, 50);
-		Beep(800, 50);
-		Beep(700, 50);
-		Beep(600, 50);
-		Beep(500, 50);
-		Beep(400, 50);
+		BeepNoise(FAILURE);
 		int msg = MessageBox(
 			NULL,
 			L"No file specified! Export canceled.",
@@ -242,9 +315,6 @@ void TW_CALL Export(void *clientData)
 			MB_ICONERROR | MB_OK);
 		return;
 	}
-
-	//Add folder to the filename to import it from the correct location
-	fResult.insert(0, std::string("Exports/"));
 
 	//Get texture name (minus directories)
 	std::string temp_tex = texturenames.at(CURRENT_TEXTURE);
@@ -411,12 +481,23 @@ void TW_CALL Import(void *clientData)
 
 		if (SUCCEEDED(hr))
 		{
+			//Event handling
+			IFileDialogEvents* pfde = NULL;
+			DWORD dwCookie = 0;
+			CDialogEventHandler_CreateInstance(IID_PPV_ARGS(&pfde));
+
+
+			hr = pFile->Advise(pfde, &dwCookie);
+
+
+
 			//Set attributes
 			pFile->SetDefaultExtension(L"ps");
 			pFile->SetFileTypes(1, &rgSpec);
 
 			//Display dialog system
 			hr = pFile->Show(NULL);
+
 
 			if (SUCCEEDED(hr))
 			{
@@ -428,7 +509,7 @@ void TW_CALL Import(void *clientData)
 				{
 					//Filepath from file
 					LPWSTR fPath;
-					hr = pItem->GetDisplayName(SIGDN_NORMALDISPLAY, &fPath);
+					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &fPath);
 
 					if (SUCCEEDED(hr))
 					{
@@ -446,13 +527,7 @@ void TW_CALL Import(void *clientData)
 	if (fResult.size() <= 0)
 	{
 		//No file was selected
-		Beep(1000, 50);
-		Beep(900, 50);
-		Beep(800, 50);
-		Beep(700, 50);
-		Beep(600, 50);
-		Beep(500, 50);
-		Beep(400, 50);
+		BeepNoise(FAILURE);
 		int msg = MessageBox(
 			NULL,
 			L"No file selected! Import canceled.",
@@ -460,9 +535,6 @@ void TW_CALL Import(void *clientData)
 			MB_ICONERROR | MB_OK);
 		return;
 	}
-
-	//Add folder to the filename to import it from the correct location
-	fResult.insert(0, std::string("Exports/"));
 	
 	//Test reading file
 	std::ifstream file;
@@ -470,13 +542,7 @@ void TW_CALL Import(void *clientData)
 	if (!file.is_open())
 	{
 		//Error in opening the file
-		Beep(1000, 50);
-		Beep(900, 50);
-		Beep(800, 50);
-		Beep(700, 50);
-		Beep(600, 50);
-		Beep(500, 50);
-		Beep(400, 50);
+		BeepNoise(FAILURE);
 		int msg = MessageBox(
 			NULL,
 			L"File was damaged or corrupt!",
@@ -503,13 +569,7 @@ void TW_CALL Import(void *clientData)
 
 
 	//File found and filename is fResult
-	Beep(400, 50);
-	Beep(500, 50);
-	Beep(600, 50);
-	Beep(700, 50);
-	Beep(800, 50);
-	Beep(900, 50);
-	Beep(1000, 50);
+	BeepNoise(SUCCESS);
 
 	CURRENT_ROT = exPS.dir;
 	CURRENT_SCALE.x = exPS.width;
@@ -536,13 +596,7 @@ void TW_CALL Import(void *clientData)
 	if (result == false)
 	{
 		//Texture wasn't recognized
-		Beep(1000, 50);
-		Beep(900, 50);
-		Beep(800, 50);
-		Beep(700, 50);
-		Beep(600, 50);
-		Beep(500, 50);
-		Beep(400, 50);
+		BeepNoise(FAILURE);
 		int msg = MessageBox(
 			NULL,
 			L"Texture not found!",
@@ -1048,7 +1102,6 @@ void Render()
 	MVP = Model;
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 	ui_keys->Render();
-
 }
 
 
@@ -1088,6 +1141,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			}
 			else
 			{
+				Sleep(8);
 				Update(dt);
 				Render();
 				SwapBuffers(hDC);
