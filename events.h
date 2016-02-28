@@ -13,8 +13,11 @@
 #define CONTROL_LABEL 5002
 #define CONTROL_EDITBOX_MINDIST 5003
 
-void SetPSString(std::string m);
-void RetexturePreview(std::string n);
+std::string currentFilename;
+
+void SetPSString(std::string);
+void RetexturePreview(std::string);
+
 
 class CDialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
 {
