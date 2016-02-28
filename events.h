@@ -15,7 +15,7 @@
 
 std::string currentFilename;
 
-void SetPSString(std::string);
+void ChangePreview();
 void RetexturePreview(std::string);
 
 
@@ -80,45 +80,33 @@ HRESULT CDialogEventHandler_CreateInstance(REFIID riid, void **ppv)
 	return hr;
 }
 
-IFACEMETHODIMP CDialogEventHandler::OnSelectionChange(IFileDialog *fileDialog)
+IFACEMETHODIMP CDialogEventHandler::OnSelectionChange(IFileDialog* fileDialog)
 {
 	//TextureData tex;
 	std::string fileName, filePath;
 	LPWSTR n;
 
-	fileDialog->GetFileName(&n);
-	fileName = WCHAR_TO_STRING(n);
-	
-	if (fileName.size() != 0)
+
+	//File chosen
+	IShellItem* pItem;
+	HRESULT hr = fileDialog->GetCurrentSelection(&pItem);
+	if (SUCCEEDED(hr))
 	{
-		//Remove ".ps"
-		//fileName.pop_back();
-		//fileName.pop_back();
-		//fileName.pop_back();
+		//Filepath from file
+		pItem->GetDisplayName(SIGDN_FILESYSPATH, &n);
+		fileName = WCHAR_TO_STRING(n);
 
-		//fileName.append(".png");
+		if (fileName.size() != 0)
+		{
 
-		//Test texture
-		//fileName = "arrow.png";
-
-
-		//Add Textures filepath
-		//filePath = "Data/Textures/";
-		//filePath.append(fileName);
-
-
-		//unsigned int x, y;
-		//PNGSize(filePath.c_str(), x, y);
-
-		//tex.texturename = filePath.c_str();
-		//tex.width = x;
-		//tex.height = y;
-		SetPSString(fileName);
-		RetexturePreview(fileName);
+			//ChangePreview();
+			//RetexturePreview(fileName);
+		}
 	}
 
 
-	
+
+
 
 	return S_OK;
 }
@@ -135,7 +123,28 @@ IFACEMETHODIMP CDialogEventHandler::OnSelectionChange(IFileDialog *fileDialog)
 
 
 
+//Remove ".ps"
+//fileName.pop_back();
+//fileName.pop_back();
+//fileName.pop_back();
 
+//fileName.append(".png");
+
+//Test texture
+//fileName = "arrow.png";
+
+
+//Add Textures filepath
+//filePath = "Data/Textures/";
+//filePath.append(fileName);
+
+
+//unsigned int x, y;
+//PNGSize(filePath.c_str(), x, y);
+
+//tex.texturename = filePath.c_str();
+//tex.width = x;
+//tex.height = y;
 
 
 

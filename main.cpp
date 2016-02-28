@@ -124,7 +124,7 @@ float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
 float MoveSpeed = 5.0f;
 
-std::string testb;
+bool change = false;
 
 void SetFPS(int fps)
 {
@@ -165,9 +165,26 @@ void SetLabel()
 	TwDefine (tw.c_str());
 }
 
-void SetPSString(std::string PSysName)
+void CreateShaders()
 {
-	testb = PSysName;
+	//Create and load shaders (Name GS "none" to disable GS)
+	program = LoadShaders("vertex.glsl", "none", "fragment.glsl");
+	ps_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
+	ps_lprogram = LoadShaders("particle_lvs.glsl", "none", "particle_lfs.glsl");
+
+	MatrixID = glGetUniformLocation(program, "MVP");
+	ps_MatrixID = glGetUniformLocation(ps_program, "MVP");
+	ps_CamID = glGetUniformLocation(ps_program, "cam");
+	ps_SizeID = glGetUniformLocation(ps_program, "size");
+	ps_GlowID = glGetUniformLocation(ps_program, "glow");
+	ps_lMatrixID = glGetUniformLocation(ps_lprogram, "MVP");
+
+	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+}
+
+void ChangePreview()
+{
+	change = true;
 }
 
 void RetexturePreview(std::string PSysName)
@@ -175,13 +192,69 @@ void RetexturePreview(std::string PSysName)
 	if (preview == NULL)
 	{
 		view = 1;
-		std::string test = PSysName;
+		//GLuint ps2_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
+		CreateShaders();
+		
+		//Read PS from PSysName
+		std::ifstream file;
+		file.open(PSysName, std::ios::binary | std::ios::in);
+		if (!file.is_open())
+		{
+			//Error in opening the file
+			BeepNoise(FAILURE);
+			file.close();
+			return;
+		}
+
+		//Read header
+		ExportHeader exHeader;
+		file.read((char*)&exHeader, sizeof(exHeader));
+
+		//Read texture name
+		char* f = (char*)malloc(exHeader.texturesize + 1);
+		file.read(f, sizeof(char) * exHeader.texturesize);
+		f[exHeader.texturesize] = 0;
+
+		//Read Particle System
+		ParticleSystemData exPS;
+		file.read((char*)&exPS, sizeof(exPS));
+		//file.read((char*)&variable, sizeof(vartype));
+		file.close();
+
+		std::string name = "Data/Textures/";
+		name.append(f);
+
+		unsigned int x = 0;
+		unsigned int y = 0;
+		bool result = PNGSize(name.c_str(), x, y);
+		if (result == false)
+		{
+			//Texture wasn't recognized
+			BeepNoise(FAILURE);
+			return;
+		}
+
+		TextureData exTD;
+		exTD.width = x;
+		exTD.height = y;
+		exTD.texturename = name.c_str();
+
+		ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0,0,-5), ps_program, ps_program);
+		camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 240, 240);
+
+		View = camera.GetView();
+		Projection = camera.GetProj();
+		Ortho = camera.GetOrtho();
 
 		// Init GLFW
 		glfwInit();
+		glViewport(0, 0, 240, 240);
+
+
 		// Set all the required options for GLFW
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -191,44 +264,60 @@ void RetexturePreview(std::string PSysName)
 		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
 		preview = glfwCreateWindow(240, 240, "Preview", nullptr, nullptr);
 		glfwMakeContextCurrent(preview);
-		glViewport(0, 0, 240, 240);
 		
-		HMONITOR monitor = MonitorFromWindow(windowReference, NULL);
-		MONITORINFO info;
-		info.cbSize = sizeof(MONITORINFO);
-		GetMonitorInfo(monitor, &info);		//store monitor res info
-		glfwSetWindowPos(preview, info.rcMonitor.right-250, info.rcMonitor.bottom-300);
-	
-		//set real window ref
-		//SetFocus(windowReference);
-		bool should = true;
+		glewInit();
+		glewExperimental = true;
+
+		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+		float c = 0.0f;
+		change = false;
 
 		while (view != 0)
 		{
 			//Listen for events
-			glfwPollEvents();
+			ps2->Update(0.02, &exPS, camera.GetPos());
 			
-			// Render
-			// Clear the colorbuffer
-			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			//Update PS
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
+
+			View = camera.GetView();
+
+
+			glUseProgram(ps_program);
+			glm::mat4 VP = glm::mat4(1.0f);
+			VP = Projection * View;
+			glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
+			glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
+			glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
+			glUniform1i(ps_GlowID, CURRENT_GLOW);
+			ps2->Render();
+
 
 			// Swap the screen buffers
 			glfwSwapBuffers(preview);
-			glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
+			glfwPollEvents();
+
+//			glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
 
 			POINT pt;
 			GetCursorPos(&pt);
-			glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
+			//glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
 
-			if (glfwGetKey(preview, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE && PSysName != testb)
+
+			if (change == true)
 			{
+				change = false;
+
 				view = 0;
+				glfwDestroyWindow(preview);
+				glfwTerminate();
+				preview = nullptr;
+
 			}
 		}
 
-		glfwTerminate();
-		preview = NULL;
 
 	}
 
@@ -255,7 +344,7 @@ void TW_CALL Export(void *clientData)
 
 		//Create instance
 		hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog, reinterpret_cast<void**>(&pFile));
-
+		
 		if (SUCCEEDED(hr))
 		{
 			TCHAR NPath[MAX_PATH];
@@ -775,22 +864,7 @@ void InitializeCamera ()
 	Ortho	   = camera.GetOrtho ();
 }
 
-void CreateShaders()
-{
-	//Create and load shaders (Name GS "none" to disable GS)
-	program = LoadShaders("vertex.glsl", "none", "fragment.glsl");
-	ps_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
-	ps_lprogram = LoadShaders("particle_lvs.glsl", "none", "particle_lfs.glsl");
 
-	MatrixID = glGetUniformLocation (program, "MVP");
-	ps_MatrixID = glGetUniformLocation(ps_program, "MVP");
-	ps_CamID = glGetUniformLocation(ps_program, "cam");
-	ps_SizeID = glGetUniformLocation(ps_program, "size");
-	ps_GlowID = glGetUniformLocation(ps_program, "glow");
-	ps_lMatrixID = glGetUniformLocation(ps_lprogram, "MVP");
-
-	glClearColor (0.2f, 0.2f, 0.2f, 0.0f);
-}
 
 void CreateObjects()
 {
@@ -884,8 +958,9 @@ void CreateObjects()
 
 void SetViewport(HWND hwnd)
 {
-	windowReference = hwnd;
+	//windowReference = hwnd;
 	glViewport(0, 0, width, height);
+
 }
 
 glm::vec3 GetInputDir (double deltaTime)
@@ -1102,6 +1177,9 @@ void Render()
 	MVP = Model;
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 	ui_keys->Render();
+
+
+
 }
 
 
@@ -1141,7 +1219,6 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			}
 			else
 			{
-				Sleep(8);
 				Update(dt);
 				Render();
 				SwapBuffers(hDC);
