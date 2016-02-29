@@ -33,18 +33,14 @@
 #include "Win32InputBox.h"
 
 
+#define GLEW_STATIC
+
 using namespace glm;
 
 //Window
 int width = 1280;
 int height = 720;
-extern GLFWwindow* window = glfwCreateWindow(width, height, "Test", NULL, NULL);
 GLFWwindow* preview;
-HWND InitWindow(HINSTANCE hInstance);
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-HGLRC CreateOpenGLContext(HWND wndHandle);
-HWND windowReference;
-
 //Window 2
 int view = 1;
 
@@ -125,6 +121,8 @@ float verticalAngle = 0.0f;
 float MoveSpeed = 5.0f;
 
 bool change = false;
+
+
 
 void SetFPS(int fps)
 {
@@ -263,12 +261,12 @@ void RetexturePreview(std::string PSysName)
 		glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
 		
-		preview = glfwCreateWindow(1280, 720, "Preview", nullptr, window);
+		//preview = glfwCreateWindow(1280, 720, "Preview", nullptr, window);
 		glfwMakeContextCurrent(preview);
 		glfwSwapInterval(1);
 		glfwShowWindow(preview);
-		glewInit();
 		glewExperimental = true;
+		glewInit();
 
 		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 		float c = 0.0f;
@@ -716,8 +714,6 @@ void TW_CALL Rebuild(void *clientData)
 	ps->Rebuild(&temp);
 }
 
-
-
 void TW_CALL Randomize(void *clientData)
 {
 	//Randomize emission delay
@@ -992,11 +988,11 @@ void Update (double deltaTime)
 		glm::vec3 pos = camera.GetPos();
 
 		GetCursorPos(&p);
-		ScreenToClient(windowReference, &p);
+		//ScreenToClient(windowReference, &p);
 		p.x = width / 2;
 		p.y = height / 2;
 
-		ClientToScreen(windowReference, &p);
+		//ClientToScreen(windowReference, &p);
 		SetCursorPos(p.x, p.y);
 
 
@@ -1183,186 +1179,98 @@ void Render()
 }
 
 
-
-int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
+/*		glfwGetFramebufferSize(window, &width, &height);
+		ratio = width / (float)height;
+		glViewport(0, 0, width, height);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
+		glBegin(GL_TRIANGLES);
+		glColor3f(1.f, 0.f, 0.f);
+		glVertex3f(-0.6f, -0.4f, 0.f);
+		glColor3f(0.f, 1.f, 0.f);
+		glVertex3f(0.6f, -0.4f, 0.f);
+		glColor3f(0.f, 0.f, 1.f);
+		glVertex3f(0.f, 0.6f, 0.f);
+		glEnd();
+*/
+int main(void)
 {
-	MSG msg = { 0 };
-	HWND wndHandle = InitWindow(hInstance); //1. Skapa fönster
+
+	glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL 
+
+	GLFWwindow* window;
+	glfwInit();
+	window = glfwCreateWindow(1280, 720, "Simple example", NULL, NULL);
+	glfwMakeContextCurrent(window);
+
+	glewExperimental = GL_TRUE;
+	glewInit();
+	glfwSwapInterval(1);
 	
-	if (wndHandle)
+	InitializeCamera();
+	CreateShaders();
+	CreateObjects();
+	InitializeGUI();
+
+
+
+	while (!glfwWindowShouldClose(window))
 	{
-		HDC hDC = GetDC(wndHandle);
-		HGLRC hRC = CreateOpenGLContext(wndHandle); //2. Skapa och koppla OpenGL context
-		
-		glewInit(); //3. Initiera The OpenGL Extension Wrangler Library (GLEW)
-		SetViewport(wndHandle);
-		
-
-		float timePass = 0.0f;
-		int fps = 0;
-		unsigned int start = clock();
-
-
-		InitializeCamera ();
-		CreateShaders();
-		CreateObjects();
-		InitializeGUI ();
-		ShowWindow(wndHandle, nCmdShow);
-
-		while (WM_QUIT != msg.message)
-		{
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-				
-			}
-			else
-			{
-				Update(dt);
-				Render();
-				SwapBuffers(hDC);
-				unsigned int temp = clock();
-				dt = unsigned int(temp - start) / double(1000);
-				timePass += dt;
-				start = temp;
-				fps++;
-				int WindowFPS = (int)1 / dt;
-				std::wstringstream wss;
-				
-				wss << "FPS: " << CURRENT_FPS;
-				
-				SetWindowText(wndHandle, wss.str().c_str());
-
-				if (timePass > 1.0f)
-				{
-					SetFPS(fps);
-					timePass = 0.0f;
-					fps = 0;
-				}
-
-				if (WM_KEYDOWN)
-				{
-					if (GetAsyncKeyState (VK_ESCAPE))
-					{
-						TwTerminate();
-						msg.message = WM_QUIT;
-						//break;	//this breaks out of the while loop (exits program)
-					}		//	   |
-				}			//	  /
-			}				//   /
-		}					//  /
-							// \/
-		wglMakeCurrent(NULL, NULL);
-		ReleaseDC(wndHandle, hDC);
-		wglDeleteContext(hRC);
-		DestroyWindow(wndHandle);
+		Update(0.02);
+		Render();
+		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
-
-	return (int) msg.wParam;
+	glfwDestroyWindow(window);
+	glfwTerminate();
+	exit(EXIT_SUCCESS);
 }
 
-HWND InitWindow(HINSTANCE hInstance)
+
+
+
+
+/*
+float timePass = 0.0f;
+int fps = 0;
+unsigned int start = clock();
+
+
+InitializeCamera();
+CreateShaders();
+CreateObjects();
+InitializeGUI();
+ShowWindow(wndHandle, nCmdShow);
+
+
+
+I LOOPEN:
+Update(dt);
+Render();
+unsigned int temp = clock();
+dt = unsigned int(temp - start) / double(1000);
+timePass += dt;
+start = temp;
+fps++;
+int WindowFPS = (int)1 / dt;
+std::wstringstream wss;
+
+wss << "FPS: " << CURRENT_FPS;
+SetWindowText(wndHandle, wss.str().c_str());
+
+if (timePass > 1.0f)
 {
-	WNDCLASSEX wcex = { 0 };
-	wcex.cbSize = sizeof(WNDCLASSEX); 
-	wcex.style          = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc    = WndProc;
-	wcex.hInstance      = hInstance;
-	wcex.lpszClassName = L"BTH_GL_DEMO";
-	if( !RegisterClassEx(&wcex) )
-		return false;
-
-	RECT rc = { 0, 0, width, height };
-	AdjustWindowRect( &rc, WS_OVERLAPPEDWINDOW, FALSE );
-	
-	HMONITOR monitor = MonitorFromRect (&rc, MONITOR_DEFAULTTONEAREST);	//find out which monitor is active
-	MONITORINFO info;
-	info.cbSize = sizeof(MONITORINFO);
-	GetMonitorInfo (monitor, &info);									//store monitor res info
-	int monitor_width = info.rcMonitor.right - info.rcMonitor.left;	
-	int monitor_height = info.rcMonitor.bottom - info.rcMonitor.top;
-	
-	HWND handle = CreateWindow(
-		L"BTH_GL_DEMO",
-		L"OpenGL Experiment",
-		WS_OVERLAPPEDWINDOW,				
-		(monitor_width / 2) - (width/2),	//always in middle of active monitor screen width
-		(monitor_height / 2) - (height/2),	//always in middle of active monitor screen height
-		rc.right - rc.left,
-		rc.bottom - rc.top,
-		nullptr,
-		nullptr,
-		hInstance,
-		nullptr);	
-
-	return handle;
+SetFPS(fps);
+timePass = 0.0f;
+fps = 0;
 }
-
-LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
-{
-	if (TwEventWin(hWnd, message, wParam, lParam))
-	{
-		return 0;
-	}
-
-	switch (message) 
-	{
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;		
-	}
-
-	return DefWindowProc(hWnd, message, wParam, lParam);
-}
-
-HGLRC CreateOpenGLContext(HWND wndHandle)
-{
-	//get handle to a device context (DC) for the client area
-	//of a specified window or for the entire screen
-	HDC hDC = GetDC(wndHandle);
-	
-	//details: http://msdn.microsoft.com/en-us/library/windows/desktop/dd318286(v=vs.85).aspx
-	static  PIXELFORMATDESCRIPTOR pixelFormatDesc =
-	{
-		sizeof(PIXELFORMATDESCRIPTOR),    // size of this pfd  
-		1,                                // version number  
-		PFD_DRAW_TO_WINDOW |              // support window  
-		PFD_SUPPORT_OPENGL |              // support OpenGL  
-		PFD_DOUBLEBUFFER |                // double buffered
-		0,								  // disable depth buffer
-		PFD_TYPE_RGBA,                    // RGBA type  
-		32,                               // 32-bit color depth  
-		0, 0, 0, 0, 0, 0,                 // color bits ignored  
-		0,                                // no alpha buffer  
-		0,                                // shift bit ignored  
-		0,                                // no accumulation buffer  
-		0, 0, 0, 0,                       // accum bits ignored  
-		0,                                // 0-bits for depth buffer <-- modified by Stefan      
-		0,                                // no stencil buffer  
-		0,                                // no auxiliary buffer  
-		PFD_MAIN_PLANE,                   // main layer  
-		0,                                // reserved  
-		0, 0, 0                           // layer masks ignored  
-	};
-
-	//attempt to match an appropriate pixel format supported by a
-	//device context to a given pixel format specification.
-	int pixelFormat = ChoosePixelFormat(hDC, &pixelFormatDesc);
-
-	//set the pixel format of the specified device context
-	//to the format specified by the iPixelFormat index.
-	SetPixelFormat(hDC, pixelFormat, &pixelFormatDesc);
-
-	//create a new OpenGL rendering context, which is suitable for drawing
-	//on the device referenced by hdc. The rendering context has the same
-	//pixel format as the device context.
-	HGLRC hRC = wglCreateContext(hDC);
-	
-	//makes a specified OpenGL rendering context the calling thread's current
-	//rendering context. All subsequent OpenGL calls made by the thread are
-	//drawn on the device identified by hdc. 
-	wglMakeCurrent(hDC, hRC);
-
-	return hRC;
-}
+*/
