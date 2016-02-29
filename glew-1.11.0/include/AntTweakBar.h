@@ -252,7 +252,11 @@ typedef enum EKeySpecial
     TW_KEY_F13,
     TW_KEY_F14,
     TW_KEY_F15,
-    TW_KEY_LAST
+    TW_KEY_LAST,
+
+	//Custom keys I need
+	TW_KEY_E = 0x65
+
 } TwKeySpecial;
 
 TW_API int      TW_CALL TwKeyPressed(int key, int modifiers);

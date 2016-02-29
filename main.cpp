@@ -4,6 +4,8 @@
 #pragma comment(lib, "AntTweakBar.lib")
 #pragma comment(lib, "Ws2_32.lib")
 
+#define GLFW_CDECL
+
 //Includes
 #include <Windows.h>
 #include <ctime>
@@ -41,6 +43,8 @@ using namespace glm;
 int width = 1280;
 int height = 720;
 GLFWwindow* preview;
+GLFWwindow* window;
+
 //Window 2
 int view = 1;
 
@@ -799,7 +803,7 @@ void InitializeGUI()
 {
 	CURRENT_LABEL = texturenames.at (CURRENT_TEXTURE);
 
-	TwInit(TW_OPENGL, NULL);
+	TwInit(TW_OPENGL_CORE, NULL);
 	TwWindowSize(1280, 720);
 	BarGUI		= TwNewBar("Settings");
 	BarControls = TwNewBar("Controls");
@@ -850,6 +854,7 @@ void InitializeGUI()
 	TwAddButton(BarControls, "Randomize", Randomize, NULL, " label='Randomize Particle System' key=e");
 	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
+	
 	SetLabel ();
 }
 
@@ -1089,6 +1094,7 @@ void Update (double deltaTime)
 	camera.SetDir (dir);
 }
 
+
 void Render()
 {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1155,8 +1161,7 @@ void Render()
 	//	--- End of PS Object
 
 	// ----------- Render GUI -------- 
-	TwDraw ();
-
+	TwDraw();
 	glDisable (GL_DEPTH_TEST);
 	glUseProgram (program);
 	Model = glm::mat4 (1.0f);
@@ -1198,6 +1203,57 @@ void Render()
 		glVertex3f(0.f, 0.6f, 0.f);
 		glEnd();
 */
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	TwEventKeyGLFW(key, action);
+
+	switch (key)
+	{
+	case GLFW_KEY_E:
+		key = TW_KEY_E;
+		break;
+	}
+
+	TwKeyPressed(key, TW_KMOD_NONE);
+}
+
+void mouse_pos(GLFWwindow* window, double x, double y)
+{
+	TwMouseMotion(x, y);
+}
+
+void mouse_click(GLFWwindow* window, int button, int action, int mods)
+{
+	TwMouseAction ac;
+	TwMouseButtonID id;
+
+	switch (button)
+	{
+	case GLFW_MOUSE_BUTTON_1:
+		id = TW_MOUSE_LEFT;
+		break;
+	case GLFW_MOUSE_BUTTON_2:
+		id = TW_MOUSE_RIGHT;
+		break;
+	case GLFW_MOUSE_BUTTON_3:
+		id = TW_MOUSE_MIDDLE;
+		break;
+	}
+	
+	switch (action)
+	{
+	case GLFW_PRESS:
+		ac = TW_MOUSE_PRESSED;
+		break;
+	case GLFW_RELEASE:
+		ac = TW_MOUSE_RELEASED;
+		break;
+	}
+
+	TwMouseButton(ac, id);
+}
+
 int main(void)
 {
 
@@ -1207,23 +1263,33 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL 
 
-	GLFWwindow* window;
 	glfwInit();
 	window = glfwCreateWindow(1280, 720, "Simple example", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
+
+
+
+
 	glewExperimental = GL_TRUE;
 	glewInit();
 	glfwSwapInterval(1);
-	
+
 	InitializeCamera();
 	CreateShaders();
 	CreateObjects();
 	InitializeGUI();
 
+	// Set GLFW event callbacks
+	// - Directly redirect GLFW mouse button events to AntTweakBar
+	glfwSetMouseButtonCallback(window, mouse_click);
+	glfwSetCursorPosCallback(window, mouse_pos);
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetCharCallback(window, (GLFWcharfun)TwEventCharGLFW);
 
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	while (!glfwWindowShouldClose(window))
+	while (!glfwGetKey(window, GLFW_KEY_ESCAPE))
 	{
 		Update(0.02);
 		Render();
