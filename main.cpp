@@ -4,6 +4,8 @@
 #pragma comment(lib, "AntTweakBar.lib")
 #pragma comment(lib, "Ws2_32.lib")
 
+#define GLFW_CDECL
+
 //Includes
 #include <Windows.h>
 #include <ctime>
@@ -33,17 +35,15 @@
 #include "Win32InputBox.h"
 
 
+#define GLEW_STATIC
+
 using namespace glm;
 
 //Window
 int width = 1280;
 int height = 720;
-extern GLFWwindow* window = glfwCreateWindow(width, height, "Test", NULL, NULL);
 GLFWwindow* preview;
-HWND InitWindow(HINSTANCE hInstance);
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-HGLRC CreateOpenGLContext(HWND wndHandle);
-HWND windowReference;
+GLFWwindow* window;
 
 //Window 2
 int view = 1;
@@ -95,13 +95,9 @@ bool		CURRENT_REPEAT = true;
 bool		CURRENT_GLOW = false;
 bool		RENDER_DIR = true;
 int			CURRENT_SCALEDIR = 0;
-bool press = false;
 glm::vec3	CURRENT_ROT;
 
 double dt = 0.0f;
-
-float input_cooldown = 0.3f;
-float input_current = 0.3f;
 
 std::vector<std::string> texturenames;
 std::vector<TextureData> texturedata;
@@ -126,6 +122,8 @@ float MoveSpeed = 5.0f;
 
 bool change = false;
 
+
+
 void SetFPS(int fps)
 {
 	CURRENT_FPS = fps;
@@ -146,6 +144,92 @@ int CheckTexture(const char* texturename)
 
 	return number;
 }
+//Listen for events
+//ps2->Update(0.02, &exPS, camera.GetPos());
+
+//Update PS
+//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//glEnable(GL_DEPTH_TEST);
+//glDepthFunc(GL_LESS);
+
+//View = camera.GetView();
+
+//glUseProgram(ps_program);
+//glm::mat4 VP = glm::mat4(1.0f);
+//VP = Projection * View;
+//glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
+//glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
+//glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
+//glUniform1i(ps_GlowID, CURRENT_GLOW);
+//ps2->Render();
+/*
+//Read PS from PSysName
+std::ifstream file;
+file.open(PSysName, std::ios::binary | std::ios::in);
+if (!file.is_open())
+{
+//Error in opening the file
+BeepNoise(FAILURE);
+file.close();
+return;
+}
+
+//Read header
+ExportHeader exHeader;
+file.read((char*)&exHeader, sizeof(exHeader));
+
+//Read texture name
+char* f = (char*)malloc(exHeader.texturesize + 1);
+file.read(f, sizeof(char) * exHeader.texturesize);
+f[exHeader.texturesize] = 0;
+
+//Read Particle System
+ParticleSystemData exPS;
+file.read((char*)&exPS, sizeof(exPS));
+//file.read((char*)&variable, sizeof(vartype));
+file.close();
+
+std::string name = "Data/Textures/";
+name.append(f);
+
+unsigned int x = 0;
+unsigned int y = 0;
+bool result = PNGSize(name.c_str(), x, y);
+if (result == false)
+{
+//Texture wasn't recognized
+BeepNoise(FAILURE);
+return;
+}
+
+TextureData exTD;
+exTD.width = x;
+exTD.height = y;
+exTD.texturename = name.c_str();
+
+ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0, 0, -5), ps_program, ps_program);
+camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1280, 720);
+
+View = camera.GetView();
+Projection = camera.GetProj();
+Ortho = camera.GetOrtho();
+*/
+
+
+//glMatrixMode(GL_PROJECTION);
+//glLoadIdentity();
+//glOrtho(-1.7f, 1.7f, -1.f, 1.f, 1.f, -1.f);
+//glMatrixMode(GL_MODELVIEW);
+//glLoadIdentity();
+//glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.0f);
+//glBegin(GL_TRIANGLES);
+//glColor3f(1.f, 0.f, 1.0f);
+//glVertex3f(-0.6f, -0.4f, 0.f);
+//glColor3f(1.f, 0.f, 1.0f);
+//glVertex3f(0.6f, -0.4f, 0.f);
+//glColor3f(1.f, 0.f, 1.0f);
+//glVertex3f(0.f, 0.6f, 0.f);
+//glEnd();
 
 void SetLabel()
 {
@@ -182,150 +266,118 @@ void CreateShaders()
 	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 }
 
-void ChangePreview()
+void StopPreview()
 {
-	change = true;
+	//change = true;
+	view = 0;
 }
 
 void RetexturePreview(std::string PSysName)
 {
-	if (preview == NULL)
+	view = 1;
+
+	glfwMakeContextCurrent(preview);
+	glViewport(0, 0, 240, 240);
+	glfwShowWindow(preview);
+
+
+	//Read PS from PSysName
+	std::ifstream file;
+	file.open(PSysName, std::ios::binary | std::ios::in);
+	if (!file.is_open())
 	{
-		view = 1;
-		GLuint ps2_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
-		//CreateShaders();
-		
-		//Read PS from PSysName
-		std::ifstream file;
-		file.open(PSysName, std::ios::binary | std::ios::in);
-		if (!file.is_open())
-		{
-			//Error in opening the file
-			BeepNoise(FAILURE);
-			file.close();
-			return;
-		}
-
-		//Read header
-		ExportHeader exHeader;
-		file.read((char*)&exHeader, sizeof(exHeader));
-
-		//Read texture name
-		char* f = (char*)malloc(exHeader.texturesize + 1);
-		file.read(f, sizeof(char) * exHeader.texturesize);
-		f[exHeader.texturesize] = 0;
-
-		//Read Particle System
-		ParticleSystemData exPS;
-		file.read((char*)&exPS, sizeof(exPS));
-		//file.read((char*)&variable, sizeof(vartype));
+		//Error in opening the file
+		BeepNoise(FAILURE);
 		file.close();
-
-		std::string name = "Data/Textures/";
-		name.append(f);
-
-		unsigned int x = 0;
-		unsigned int y = 0;
-		bool result = PNGSize(name.c_str(), x, y);
-		if (result == false)
-		{
-			//Texture wasn't recognized
-			BeepNoise(FAILURE);
-			return;
-		}
-
-		TextureData exTD;
-		exTD.width = x;
-		exTD.height = y;
-		exTD.texturename = name.c_str();
-
-		ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0,0,-5), ps2_program, ps2_program);
-		camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1280, 720);
-
-		View = camera.GetView();
-		Projection = camera.GetProj();
-		Ortho = camera.GetOrtho();
-
-		// Init GLFW
-		glfwInit();
-		glViewport(0, 0, 1280, 720);
-
-
-		// Set all the required options for GLFW
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-		// Create a GLFWwindow object that we can use for GLFW's functions
-		glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
-		glfwWindowHint(GLFW_DECORATED, GL_FALSE);
-		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
-		
-		preview = glfwCreateWindow(1280, 720, "Preview", nullptr, window);
-		glfwMakeContextCurrent(preview);
-		glfwSwapInterval(1);
-		glfwShowWindow(preview);
-		glewInit();
-		glewExperimental = true;
-
-		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-		float c = 0.0f;
-		change = false;
-
-		while (view != 0)
-		{
-			//Listen for events
-			ps2->Update(0.02, &exPS, camera.GetPos());
-			
-			//Update PS
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_LESS);
-
-			View = camera.GetView();
-
-			glUseProgram(ps2_program);
-			glm::mat4 VP = glm::mat4(1.0f);
-			VP = Projection * View;
-			glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
-			glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
-			glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
-			glUniform1i(ps_GlowID, CURRENT_GLOW);
-			ps2->Render();
-
-			// Swap the screen buffers
-			glfwSwapBuffers(preview);
-			glfwPollEvents();
-			glfwWaitEvents();
-
-//			glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
-
-			POINT pt;
-			GetCursorPos(&pt);
-			//glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
-
-
-			if (change == true)
-			{
-				change = false;
-
-				view = 0;
-				glfwDestroyWindow(preview);
-				glfwTerminate();
-				preview = nullptr;
-
-			}
-		}
-
-
+		return;
 	}
 
+	//Read header
+	ExportHeader exHeader;
+	file.read((char*)&exHeader, sizeof(exHeader));
+
+	//Read texture name
+	char* f = (char*)malloc(exHeader.texturesize + 1);
+	file.read(f, sizeof(char) * exHeader.texturesize);
+	f[exHeader.texturesize] = 0;
+
+	//Read Particle System
+	ParticleSystemData exPS;
+	file.read((char*)&exPS, sizeof(exPS));
+	file.close();
+
+	std::string name = "Data/Textures/";
+	name.append(f);
+
+	unsigned int x = 0;
+	unsigned int y = 0;
+	bool result = PNGSize(name.c_str(), x, y);
+	if (result == false)
+	{
+		//Texture wasn't recognized
+		BeepNoise(FAILURE);
+		return;
+	}
+
+	TextureData exTD;
+	exTD.width = x;
+	exTD.height = y;
+	exTD.texturename = name.c_str();
+
+	ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0, 0, 0), ps_program, ps_program);
+	CURRENT_GLOW = exPS.glow;
+	camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 240, 240);
+
+	View = camera.GetView();
+	Projection = camera.GetProj();
+	Ortho = camera.GetOrtho();
+
+	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
 
+	double deltaTime = 0;
+	double lastTime = 0;
+	double timer = 0;
 
 
+	while (view != 0)
+	{
+		deltaTime = glfwGetTime() - lastTime;
+		lastTime = glfwGetTime();
+
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+
+		//Update
+		ps2->Update(deltaTime, &exPS, camera.GetPos());
+
+		View = camera.GetView();
+
+		glUseProgram(ps_program);
+		glm::mat4 VP = glm::mat4(1.0f);
+		VP = Projection * View;
+		glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
+		glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
+		glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
+		glUniform1i(ps_GlowID, CURRENT_GLOW);
+		ps2->Render();
+		
+			
+		// Swap the screen buffers
+		glfwMakeContextCurrent(preview);
+
+		glfwSwapBuffers(preview);
+		glfwPollEvents();
+
+		POINT pt;
+		GetCursorPos(&pt);
+		glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
+	}
+	
+	glfwHideWindow(preview);
+	glfwMakeContextCurrent(window);
 }
 
 void TW_CALL Export(void *clientData)
@@ -600,7 +652,6 @@ void TW_CALL Import(void *clientData)
 					//Filepath from file
 					LPWSTR fPath;
 					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &fPath);
-
 					if (SUCCEEDED(hr))
 					{
 						fResult = WCHAR_TO_STRING(fPath);
@@ -626,6 +677,8 @@ void TW_CALL Import(void *clientData)
 		return;
 	}
 	
+	view = 0;
+
 	//Test reading file
 	std::ifstream file;
 	file.open(fResult, std::ios::binary | std::ios::in);
@@ -716,8 +769,6 @@ void TW_CALL Rebuild(void *clientData)
 	ps->Rebuild(&temp);
 }
 
-
-
 void TW_CALL Randomize(void *clientData)
 {
 	//Randomize emission delay
@@ -803,7 +854,7 @@ void InitializeGUI()
 {
 	CURRENT_LABEL = texturenames.at (CURRENT_TEXTURE);
 
-	TwInit(TW_OPENGL, NULL);
+	TwInit(TW_OPENGL_CORE, NULL);
 	TwWindowSize(1280, 720);
 	BarGUI		= TwNewBar("Settings");
 	BarControls = TwNewBar("Controls");
@@ -854,6 +905,7 @@ void InitializeGUI()
 	TwAddButton(BarControls, "Randomize", Randomize, NULL, " label='Randomize Particle System' key=e");
 	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
+	
 	SetLabel ();
 }
 
@@ -981,22 +1033,17 @@ glm::vec3 GetInputDir (double deltaTime)
 
 void Update (double deltaTime)
 {
-	if (input_current > 0.0f)
-	{
-		input_current = input_current - (float) deltaTime;
-	}
-
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
 	{
 		glm::mat4 cam = camera.GetView();
 		glm::vec3 pos = camera.GetPos();
 
 		GetCursorPos(&p);
-		ScreenToClient(windowReference, &p);
+		//ScreenToClient(windowReference, &p);
 		p.x = width / 2;
 		p.y = height / 2;
 
-		ClientToScreen(windowReference, &p);
+		//ClientToScreen(windowReference, &p);
 		SetCursorPos(p.x, p.y);
 
 
@@ -1006,38 +1053,6 @@ void Update (double deltaTime)
 
 		camera.SetPos(pos);
 		camera.SetView(cam);
-	}
-
-
-	if (GetAsyncKeyState (0x54) & 0x8000 && input_current <= 0.0f )
-	{
-		input_current = input_cooldown;
-		if (CURRENT_TEXTURE+1 >= texturedata.size ())
-		{
-			CURRENT_TEXTURE = 0;
-		}
-		else
-		{
-			CURRENT_TEXTURE++;
-		}
-
-		ps->Retexture (&texturedata[CURRENT_TEXTURE]);
-		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
-		SetLabel ();
-
-	}
-
-
-	if (GetAsyncKeyState(VK_TAB) && press == false)
-	{
-		bool active = arrow->IsActive();
-		arrow->SetActive(!active);
-		sphere->SetActive(active);
-		press = true;
-	}
-	else if (!GetAsyncKeyState(VK_TAB))
-	{
-		press = false;
 	}
 
 	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
@@ -1092,6 +1107,7 @@ void Update (double deltaTime)
 	camera.SetPos (pos);
 	camera.SetDir (dir);
 }
+
 
 void Render()
 {
@@ -1159,8 +1175,7 @@ void Render()
 	//	--- End of PS Object
 
 	// ----------- Render GUI -------- 
-	TwDraw ();
-
+	TwDraw();
 	glDisable (GL_DEPTH_TEST);
 	glUseProgram (program);
 	Model = glm::mat4 (1.0f);
@@ -1183,186 +1198,186 @@ void Render()
 }
 
 
+/*		glfwGetFramebufferSize(window, &width, &height);
+		ratio = width / (float)height;
+		glViewport(0, 0, width, height);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
+		glBegin(GL_TRIANGLES);
+		glColor3f(1.f, 0.f, 0.f);
+		glVertex3f(-0.6f, -0.4f, 0.f);
+		glColor3f(0.f, 1.f, 0.f);
+		glVertex3f(0.6f, -0.4f, 0.f);
+		glColor3f(0.f, 0.f, 1.f);
+		glVertex3f(0.f, 0.6f, 0.f);
+		glEnd();
+*/
 
-int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	MSG msg = { 0 };
-	HWND wndHandle = InitWindow(hInstance); //1. Skapa fönster
-	
-	if (wndHandle)
+	//TW Key codes
+	switch (key)
 	{
-		HDC hDC = GetDC(wndHandle);
-		HGLRC hRC = CreateOpenGLContext(wndHandle); //2. Skapa och koppla OpenGL context
-		
-		glewInit(); //3. Initiera The OpenGL Extension Wrangler Library (GLEW)
-		SetViewport(wndHandle);
-		
+	case GLFW_KEY_E:
+		key = TW_KEY_E;
+		break;
+	case GLFW_KEY_R:
+		key = TW_KEY_R;
+		break;
+	case GLFW_KEY_ENTER:
+		key = TW_KEY_RETURN;
+		break;
+	}
 
-		float timePass = 0.0f;
-		int fps = 0;
-		unsigned int start = clock();
+	if (action == GLFW_PRESS) TwKeyPressed(key, TW_KMOD_NONE);
 
-
-		InitializeCamera ();
-		CreateShaders();
-		CreateObjects();
-		InitializeGUI ();
-		ShowWindow(wndHandle, nCmdShow);
-
-		while (WM_QUIT != msg.message)
+	//Regular key codes (non-TW related)
+	if (key == GLFW_KEY_T && action == GLFW_PRESS)
+	{
+		if (CURRENT_TEXTURE + 1 >= texturedata.size())
 		{
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-				
-			}
-			else
-			{
-				Update(dt);
-				Render();
-				SwapBuffers(hDC);
-				unsigned int temp = clock();
-				dt = unsigned int(temp - start) / double(1000);
-				timePass += dt;
-				start = temp;
-				fps++;
-				int WindowFPS = (int)1 / dt;
-				std::wstringstream wss;
-				
-				wss << "FPS: " << CURRENT_FPS;
-				
-				SetWindowText(wndHandle, wss.str().c_str());
+			CURRENT_TEXTURE = 0;
+		}
+		else
+		{
+			CURRENT_TEXTURE++;
+		}
 
-				if (timePass > 1.0f)
-				{
-					SetFPS(fps);
-					timePass = 0.0f;
-					fps = 0;
-				}
-
-				if (WM_KEYDOWN)
-				{
-					if (GetAsyncKeyState (VK_ESCAPE))
-					{
-						TwTerminate();
-						msg.message = WM_QUIT;
-						//break;	//this breaks out of the while loop (exits program)
-					}		//	   |
-				}			//	  /
-			}				//   /
-		}					//  /
-							// \/
-		wglMakeCurrent(NULL, NULL);
-		ReleaseDC(wndHandle, hDC);
-		wglDeleteContext(hRC);
-		DestroyWindow(wndHandle);
+		ps->Retexture(&texturedata[CURRENT_TEXTURE]);
+		ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
+		SetLabel();
 	}
 
-	return (int) msg.wParam;
-}
-
-HWND InitWindow(HINSTANCE hInstance)
-{
-	WNDCLASSEX wcex = { 0 };
-	wcex.cbSize = sizeof(WNDCLASSEX); 
-	wcex.style          = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc    = WndProc;
-	wcex.hInstance      = hInstance;
-	wcex.lpszClassName = L"BTH_GL_DEMO";
-	if( !RegisterClassEx(&wcex) )
-		return false;
-
-	RECT rc = { 0, 0, width, height };
-	AdjustWindowRect( &rc, WS_OVERLAPPEDWINDOW, FALSE );
-	
-	HMONITOR monitor = MonitorFromRect (&rc, MONITOR_DEFAULTTONEAREST);	//find out which monitor is active
-	MONITORINFO info;
-	info.cbSize = sizeof(MONITORINFO);
-	GetMonitorInfo (monitor, &info);									//store monitor res info
-	int monitor_width = info.rcMonitor.right - info.rcMonitor.left;	
-	int monitor_height = info.rcMonitor.bottom - info.rcMonitor.top;
-	
-	HWND handle = CreateWindow(
-		L"BTH_GL_DEMO",
-		L"OpenGL Experiment",
-		WS_OVERLAPPEDWINDOW,				
-		(monitor_width / 2) - (width/2),	//always in middle of active monitor screen width
-		(monitor_height / 2) - (height/2),	//always in middle of active monitor screen height
-		rc.right - rc.left,
-		rc.bottom - rc.top,
-		nullptr,
-		nullptr,
-		hInstance,
-		nullptr);	
-
-	return handle;
-}
-
-LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
-{
-	if (TwEventWin(hWnd, message, wParam, lParam))
+	if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
 	{
-		return 0;
+		bool active = arrow->IsActive();
+		arrow->SetActive(!active);
+		sphere->SetActive(active);
 	}
 
-	switch (message) 
-	{
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;		
-	}
-
-	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-HGLRC CreateOpenGLContext(HWND wndHandle)
+void mouse_pos(GLFWwindow* window, double x, double y)
 {
-	//get handle to a device context (DC) for the client area
-	//of a specified window or for the entire screen
-	HDC hDC = GetDC(wndHandle);
-	
-	//details: http://msdn.microsoft.com/en-us/library/windows/desktop/dd318286(v=vs.85).aspx
-	static  PIXELFORMATDESCRIPTOR pixelFormatDesc =
+	TwMouseMotion(x, y);
+}
+
+void mouse_click(GLFWwindow* window, int button, int action, int mods)
+{
+	TwMouseAction ac;
+	TwMouseButtonID id;
+
+	switch (button)
 	{
-		sizeof(PIXELFORMATDESCRIPTOR),    // size of this pfd  
-		1,                                // version number  
-		PFD_DRAW_TO_WINDOW |              // support window  
-		PFD_SUPPORT_OPENGL |              // support OpenGL  
-		PFD_DOUBLEBUFFER |                // double buffered
-		0,								  // disable depth buffer
-		PFD_TYPE_RGBA,                    // RGBA type  
-		32,                               // 32-bit color depth  
-		0, 0, 0, 0, 0, 0,                 // color bits ignored  
-		0,                                // no alpha buffer  
-		0,                                // shift bit ignored  
-		0,                                // no accumulation buffer  
-		0, 0, 0, 0,                       // accum bits ignored  
-		0,                                // 0-bits for depth buffer <-- modified by Stefan      
-		0,                                // no stencil buffer  
-		0,                                // no auxiliary buffer  
-		PFD_MAIN_PLANE,                   // main layer  
-		0,                                // reserved  
-		0, 0, 0                           // layer masks ignored  
-	};
-
-	//attempt to match an appropriate pixel format supported by a
-	//device context to a given pixel format specification.
-	int pixelFormat = ChoosePixelFormat(hDC, &pixelFormatDesc);
-
-	//set the pixel format of the specified device context
-	//to the format specified by the iPixelFormat index.
-	SetPixelFormat(hDC, pixelFormat, &pixelFormatDesc);
-
-	//create a new OpenGL rendering context, which is suitable for drawing
-	//on the device referenced by hdc. The rendering context has the same
-	//pixel format as the device context.
-	HGLRC hRC = wglCreateContext(hDC);
+	case GLFW_MOUSE_BUTTON_1:
+		id = TW_MOUSE_LEFT;
+		break;
+	case GLFW_MOUSE_BUTTON_2:
+		id = TW_MOUSE_RIGHT;
+		break;
+	case GLFW_MOUSE_BUTTON_3:
+		id = TW_MOUSE_MIDDLE;
+		break;
+	case GLFW_MOUSE_BUTTON_4:
+		id = (TwMouseButtonID)0;
+		break;
+	case GLFW_MOUSE_BUTTON_5:
+		id = (TwMouseButtonID)0;
+		break;
+	}
 	
-	//makes a specified OpenGL rendering context the calling thread's current
-	//rendering context. All subsequent OpenGL calls made by the thread are
-	//drawn on the device identified by hdc. 
-	wglMakeCurrent(hDC, hRC);
+	switch (action)
+	{
+	case GLFW_PRESS:
+		ac = TW_MOUSE_PRESSED;
+		break;
+	case GLFW_RELEASE:
+		ac = TW_MOUSE_RELEASED;
+		break;
+	}
 
-	return hRC;
+	TwMouseButton(ac, id);
+}
+
+int main(void)
+{
+
+	glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL 
+	glfwInit();
+	window = glfwCreateWindow(1280, 720, "Simple example", NULL, NULL);
+	glViewport(0, 0, width, height);
+
+	glfwMakeContextCurrent(window);
+	glewExperimental = GL_TRUE;
+	glewInit();
+	glfwSwapInterval(0);
+
+	//Window 2 ----
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
+	glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+	glfwWindowHint(GLFW_FLOATING, GL_TRUE);
+	preview = glfwCreateWindow(240, 240, "Preview", nullptr, window);
+	glfwHideWindow(preview);
+	// -----------
+
+
+	InitializeCamera();
+	CreateShaders();
+	CreateObjects();
+	InitializeGUI();
+
+	// Set GLFW event callbacks
+	// - Directly redirect GLFW mouse button events to AntTweakBar
+	glfwSetMouseButtonCallback(window, mouse_click);
+	glfwSetCursorPosCallback(window, mouse_pos);
+	glfwSetKeyCallback(window, key_callback);
+	//TODO: Deal with input chars (includes 0-9?)
+	glfwSetCharCallback(window, (GLFWcharfun)TwEventCharGLFW);
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+	double deltaTime = 0;
+	double lastTime = 0;
+	double timer = 0;
+	int frames = 0;
+	int FPS = 0;
+
+	while (!glfwGetKey(window, GLFW_KEY_ESCAPE))
+	{
+		deltaTime = glfwGetTime() - lastTime;
+		lastTime = glfwGetTime();
+
+		timer += deltaTime;
+
+		frames++;
+
+		if (timer > 1.0)
+		{
+			FPS = frames;
+			timer = 0;
+			frames = 0;
+		}
+
+		glfwSetWindowTitle(window, std::to_string(FPS).c_str());
+
+		Update(deltaTime);
+		Render();
+
+
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+	glfwDestroyWindow(window);
+	glfwTerminate();
+	exit(EXIT_SUCCESS);
 }
