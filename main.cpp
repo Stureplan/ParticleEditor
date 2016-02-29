@@ -215,6 +215,22 @@ Projection = camera.GetProj();
 Ortho = camera.GetOrtho();
 */
 
+
+//glMatrixMode(GL_PROJECTION);
+//glLoadIdentity();
+//glOrtho(-1.7f, 1.7f, -1.f, 1.f, 1.f, -1.f);
+//glMatrixMode(GL_MODELVIEW);
+//glLoadIdentity();
+//glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.0f);
+//glBegin(GL_TRIANGLES);
+//glColor3f(1.f, 0.f, 1.0f);
+//glVertex3f(-0.6f, -0.4f, 0.f);
+//glColor3f(1.f, 0.f, 1.0f);
+//glVertex3f(0.6f, -0.4f, 0.f);
+//glColor3f(1.f, 0.f, 1.0f);
+//glVertex3f(0.f, 0.6f, 0.f);
+//glEnd();
+
 void SetLabel()
 {
 	std::string temp = texturenames.at(CURRENT_TEXTURE);
@@ -265,31 +281,89 @@ void RetexturePreview(std::string PSysName)
 	glfwShowWindow(preview);
 
 
+	//Read PS from PSysName
+	std::ifstream file;
+	file.open(PSysName, std::ios::binary | std::ios::in);
+	if (!file.is_open())
+	{
+		//Error in opening the file
+		BeepNoise(FAILURE);
+		file.close();
+		return;
+	}
+
+	//Read header
+	ExportHeader exHeader;
+	file.read((char*)&exHeader, sizeof(exHeader));
+
+	//Read texture name
+	char* f = (char*)malloc(exHeader.texturesize + 1);
+	file.read(f, sizeof(char) * exHeader.texturesize);
+	f[exHeader.texturesize] = 0;
+
+	//Read Particle System
+	ParticleSystemData exPS;
+	file.read((char*)&exPS, sizeof(exPS));
+	file.close();
+
+	std::string name = "Data/Textures/";
+	name.append(f);
+
+	unsigned int x = 0;
+	unsigned int y = 0;
+	bool result = PNGSize(name.c_str(), x, y);
+	if (result == false)
+	{
+		//Texture wasn't recognized
+		BeepNoise(FAILURE);
+		return;
+	}
+
+	TextureData exTD;
+	exTD.width = x;
+	exTD.height = y;
+	exTD.texturename = name.c_str();
+
+	ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0, 0, 0), ps_program, ps_program);
+	CURRENT_GLOW = exPS.glow;
+	camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 240, 240);
+
+	View = camera.GetView();
+	Projection = camera.GetProj();
+	Ortho = camera.GetOrtho();
 
 	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
-	//change = false;
+
+	double deltaTime = 0;
+	double lastTime = 0;
+	double timer = 0;
+
+
 	while (view != 0)
 	{
+		deltaTime = glfwGetTime() - lastTime;
+		lastTime = glfwGetTime();
+
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(-1.7f, 1.7f, -1.f, 1.f, 1.f, -1.f);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.0f);
-		glBegin(GL_TRIANGLES);
-		glColor3f(1.f, 0.f, 1.0f);
-		glVertex3f(-0.6f, -0.4f, 0.f);
-		glColor3f(1.f, 0.f, 1.0f);
-		glVertex3f(0.6f, -0.4f, 0.f);
-		glColor3f(1.f, 0.f, 1.0f);
-		glVertex3f(0.f, 0.6f, 0.f);
-		glEnd();
+		//Update
+		ps2->Update(deltaTime, &exPS, camera.GetPos());
+
+		View = camera.GetView();
+
+		glUseProgram(ps_program);
+		glm::mat4 VP = glm::mat4(1.0f);
+		VP = Projection * View;
+		glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
+		glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
+		glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
+		glUniform1i(ps_GlowID, CURRENT_GLOW);
+		ps2->Render();
+		
 			
 		// Swap the screen buffers
 		glfwMakeContextCurrent(preview);
@@ -603,6 +677,8 @@ void TW_CALL Import(void *clientData)
 		return;
 	}
 	
+	view = 0;
+
 	//Test reading file
 	std::ifstream file;
 	file.open(fResult, std::ios::binary | std::ios::in);
