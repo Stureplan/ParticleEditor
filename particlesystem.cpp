@@ -21,7 +21,19 @@ ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* te
 	Initialize();
 }
 
-ParticleSystem::~ParticleSystem() { }
+ParticleSystem::~ParticleSystem() 
+{ 
+	texture = 0;
+	vertexbuffer = 0;
+	dirbuffer = 0;
+	vtxpos = 0;
+	vtxdir = 0;
+	m_shader = 0;
+	m_lshader = 0;
+
+	m_particleinfo = nullptr;
+	m_textureinfo = nullptr;
+}
 
 void ParticleSystem::Initialize()
 {
