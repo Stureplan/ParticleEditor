@@ -99,8 +99,8 @@ IFACEMETHODIMP CDialogEventHandler::OnSelectionChange(IFileDialog* fileDialog)
 		if (fileName.size() != 0)
 		{
 
-			//ChangePreview();
-			//RetexturePreview(fileName);
+			ChangePreview();
+			RetexturePreview(fileName);
 		}
 	}
 

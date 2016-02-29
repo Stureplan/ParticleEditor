@@ -144,6 +144,76 @@ int CheckTexture(const char* texturename)
 
 	return number;
 }
+//Listen for events
+//ps2->Update(0.02, &exPS, camera.GetPos());
+
+//Update PS
+//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//glEnable(GL_DEPTH_TEST);
+//glDepthFunc(GL_LESS);
+
+//View = camera.GetView();
+
+//glUseProgram(ps_program);
+//glm::mat4 VP = glm::mat4(1.0f);
+//VP = Projection * View;
+//glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
+//glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
+//glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
+//glUniform1i(ps_GlowID, CURRENT_GLOW);
+//ps2->Render();
+/*
+//Read PS from PSysName
+std::ifstream file;
+file.open(PSysName, std::ios::binary | std::ios::in);
+if (!file.is_open())
+{
+//Error in opening the file
+BeepNoise(FAILURE);
+file.close();
+return;
+}
+
+//Read header
+ExportHeader exHeader;
+file.read((char*)&exHeader, sizeof(exHeader));
+
+//Read texture name
+char* f = (char*)malloc(exHeader.texturesize + 1);
+file.read(f, sizeof(char) * exHeader.texturesize);
+f[exHeader.texturesize] = 0;
+
+//Read Particle System
+ParticleSystemData exPS;
+file.read((char*)&exPS, sizeof(exPS));
+//file.read((char*)&variable, sizeof(vartype));
+file.close();
+
+std::string name = "Data/Textures/";
+name.append(f);
+
+unsigned int x = 0;
+unsigned int y = 0;
+bool result = PNGSize(name.c_str(), x, y);
+if (result == false)
+{
+//Texture wasn't recognized
+BeepNoise(FAILURE);
+return;
+}
+
+TextureData exTD;
+exTD.width = x;
+exTD.height = y;
+exTD.texturename = name.c_str();
+
+ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0, 0, -5), ps_program, ps_program);
+camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1280, 720);
+
+View = camera.GetView();
+Projection = camera.GetProj();
+Ortho = camera.GetOrtho();
+*/
 
 void SetLabel()
 {
@@ -187,143 +257,64 @@ void ChangePreview()
 
 void RetexturePreview(std::string PSysName)
 {
-	if (preview == NULL)
+	view = 1;
+
+	glfwMakeContextCurrent(preview);
+	//glewExperimental = GL_TRUE;
+	//glewInit();
+	//glfwSwapInterval(0);
+	glViewport(0, 0, 240, 240);
+	glfwShowWindow(preview);
+
+
+
+	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	float c = 0.0f;
+
+	change = false;
+	while (view != 0)
 	{
-		view = 1;
-		GLuint ps2_program = LoadShaders("particle_vs.glsl", "particle_gs.glsl", "particle_fs.glsl");
-		//CreateShaders();
-		
-		//Read PS from PSysName
-		std::ifstream file;
-		file.open(PSysName, std::ios::binary | std::ios::in);
-		if (!file.is_open())
-		{
-			//Error in opening the file
-			BeepNoise(FAILURE);
-			file.close();
-			return;
-		}
 
-		//Read header
-		ExportHeader exHeader;
-		file.read((char*)&exHeader, sizeof(exHeader));
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 
-		//Read texture name
-		char* f = (char*)malloc(exHeader.texturesize + 1);
-		file.read(f, sizeof(char) * exHeader.texturesize);
-		f[exHeader.texturesize] = 0;
-
-		//Read Particle System
-		ParticleSystemData exPS;
-		file.read((char*)&exPS, sizeof(exPS));
-		//file.read((char*)&variable, sizeof(vartype));
-		file.close();
-
-		std::string name = "Data/Textures/";
-		name.append(f);
-
-		unsigned int x = 0;
-		unsigned int y = 0;
-		bool result = PNGSize(name.c_str(), x, y);
-		if (result == false)
-		{
-			//Texture wasn't recognized
-			BeepNoise(FAILURE);
-			return;
-		}
-
-		TextureData exTD;
-		exTD.width = x;
-		exTD.height = y;
-		exTD.texturename = name.c_str();
-
-		ParticleSystem* ps2 = new ParticleSystem(&exPS, &exTD, glm::vec3(0,0,-5), ps2_program, ps2_program);
-		camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1280, 720);
-
-		View = camera.GetView();
-		Projection = camera.GetProj();
-		Ortho = camera.GetOrtho();
-
-		// Init GLFW
-		glfwInit();
-		glViewport(0, 0, 1280, 720);
-
-
-		// Set all the required options for GLFW
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-		// Create a GLFWwindow object that we can use for GLFW's functions
-		glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
-		glfwWindowHint(GLFW_DECORATED, GL_FALSE);
-		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
-		
-		//preview = glfwCreateWindow(1280, 720, "Preview", nullptr, window);
-		glfwMakeContextCurrent(preview);
-		glfwSwapInterval(1);
-		glfwShowWindow(preview);
-		glewExperimental = true;
-		glewInit();
-
-		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-		float c = 0.0f;
-		change = false;
-
-		while (view != 0)
-		{
-			//Listen for events
-			ps2->Update(0.02, &exPS, camera.GetPos());
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(-1.7f, 1.7f, -1.f, 1.f, 1.f, -1.f);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
+		glBegin(GL_TRIANGLES);
+		glColor3f(1.f, 0.f, 0.f);
+		glVertex3f(-0.6f, -0.4f, 0.f);
+		glColor3f(0.f, 1.f, 0.f);
+		glVertex3f(0.6f, -0.4f, 0.f);
+		glColor3f(0.f, 0.f, 1.f);
+		glVertex3f(0.f, 0.6f, 0.f);
+		glEnd();
 			
-			//Update PS
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_LESS);
+		// Swap the screen buffers
+		glfwMakeContextCurrent(preview);
 
-			View = camera.GetView();
+		glfwSwapBuffers(preview);
+		glfwPollEvents();
 
-			glUseProgram(ps2_program);
-			glm::mat4 VP = glm::mat4(1.0f);
-			VP = Projection * View;
-			glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
-			glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
-			glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
-			glUniform1i(ps_GlowID, CURRENT_GLOW);
-			ps2->Render();
+		POINT pt;
+		GetCursorPos(&pt);
+		//glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
 
-			// Swap the screen buffers
-			glfwSwapBuffers(preview);
-			glfwPollEvents();
-			glfwWaitEvents();
-
-//			glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
-
-			POINT pt;
-			GetCursorPos(&pt);
-			//glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
-
-
-			if (change == true)
-			{
-				change = false;
-
-				view = 0;
-				glfwDestroyWindow(preview);
-				glfwTerminate();
-				preview = nullptr;
-
-			}
+		if (change)
+		{
+			break;
 		}
-
-
 	}
-
-
-
-
-
+	
+	view = 0;
+	//glfwDestroyWindow(preview);
+	//glfwTerminate();
+	glfwHideWindow(preview);
+	glfwMakeContextCurrent(window);
 }
 
 void TW_CALL Export(void *clientData)
@@ -1169,15 +1160,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	switch (key)
 	{
 	case GLFW_KEY_E:
-		if (action == GLFW_PRESS) { key = TW_KEY_E; }
+		key = TW_KEY_E;
 		break;
 	case GLFW_KEY_R:
 		key = TW_KEY_R;
 		break;
+	case GLFW_KEY_ENTER:
+		key = TW_KEY_RETURN;
+		break;
 	}
 
-
-	TwKeyPressed(key, TW_KMOD_NONE);
+	if (action == GLFW_PRESS) TwKeyPressed(key, TW_KMOD_NONE);
 
 	//Regular key codes (non-TW related)
 	if (key == GLFW_KEY_T && action == GLFW_PRESS)
@@ -1255,18 +1248,24 @@ int main(void)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL 
-
 	glfwInit();
 	window = glfwCreateWindow(1280, 720, "Simple example", NULL, NULL);
+	glViewport(0, 0, width, height);
+
 	glfwMakeContextCurrent(window);
-
-
-
-
-
 	glewExperimental = GL_TRUE;
 	glewInit();
 	glfwSwapInterval(0);
+
+	//Window 2 ----
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
+	glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+	glfwWindowHint(GLFW_FLOATING, GL_TRUE);
+	preview = glfwCreateWindow(240, 240, "Preview", nullptr, window);
+	glfwHideWindow(preview);
+	// -----------
+
 
 	InitializeCamera();
 	CreateShaders();
@@ -1304,10 +1303,13 @@ int main(void)
 			frames = 0;
 		}
 
-		
 		glfwSetWindowTitle(window, std::to_string(FPS).c_str());
+
 		Update(deltaTime);
 		Render();
+
+
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -1315,43 +1317,3 @@ int main(void)
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
 }
-
-
-
-
-
-/*
-float timePass = 0.0f;
-int fps = 0;
-unsigned int start = clock();
-
-
-InitializeCamera();
-CreateShaders();
-CreateObjects();
-InitializeGUI();
-ShowWindow(wndHandle, nCmdShow);
-
-
-
-I LOOPEN:
-Update(dt);
-Render();
-unsigned int temp = clock();
-dt = unsigned int(temp - start) / double(1000);
-timePass += dt;
-start = temp;
-fps++;
-int WindowFPS = (int)1 / dt;
-std::wstringstream wss;
-
-wss << "FPS: " << CURRENT_FPS;
-SetWindowText(wndHandle, wss.str().c_str());
-
-if (timePass > 1.0f)
-{
-SetFPS(fps);
-timePass = 0.0f;
-fps = 0;
-}
-*/
