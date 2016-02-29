@@ -4,17 +4,17 @@ void Camera::Initialize (glm::vec3 pos, glm::vec3 at, int width, int height)
 {
 	View = glm::lookAt
 	(
-		pos,					//pos
-		at,						//at
-		glm::vec3 (0, 1, 0)		//up
+		pos,							//pos
+		at,								//at
+		glm::vec3 (0, 1, 0)				//up
 	);
 
 	Projection = glm::perspective
 	(
-		glm::radians (45.0f),	//FOV
-		16.0f / 9.0f,			//aspect ratio
-		0.1f,					//near
-		100.0f					//far
+		glm::radians (45.0f),			//FOV
+		(float)width / (float)height,	//aspect ratio
+		0.1f,							//near
+		100.0f							//far
 	);
 
 	Ortho = glm::ortho

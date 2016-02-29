@@ -144,6 +144,15 @@ int CheckTexture(const char* texturename)
 
 	return number;
 }
+
+void InitializeCamera()
+{
+	camera.Initialize(glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), width, height);
+	View = camera.GetView();
+	Projection = camera.GetProj();
+	Ortho = camera.GetOrtho();
+}
+
 //Listen for events
 //ps2->Update(0.02, &exPS, camera.GetPos());
 
@@ -278,7 +287,6 @@ void RetexturePreview(std::string PSysName)
 
 	glfwMakeContextCurrent(preview);
 	glViewport(0, 0, 240, 240);
-	glfwShowWindow(preview);
 
 
 	//Read PS from PSysName
@@ -334,6 +342,10 @@ void RetexturePreview(std::string PSysName)
 
 	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
+	POINT pt;
+	GetCursorPos(&pt);
+	glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
+	glfwShowWindow(preview);
 
 	double deltaTime = 0;
 	double lastTime = 0;
@@ -360,8 +372,8 @@ void RetexturePreview(std::string PSysName)
 		VP = Projection * View;
 		glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
 		glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
-		glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
-		glUniform1i(ps_GlowID, CURRENT_GLOW);
+		glUniform2fv(ps_SizeID, 1, glm::value_ptr(glm::vec2(exPS.width, exPS.height)));
+		glUniform1i(ps_GlowID, exPS.glow);
 		ps2->Render();
 		
 			
@@ -640,7 +652,6 @@ void TW_CALL Import(void *clientData)
 			//Display dialog system
 			hr = pFile->Show(NULL);
 
-
 			if (SUCCEEDED(hr))
 			{
 				//File chosen
@@ -661,6 +672,7 @@ void TW_CALL Import(void *clientData)
 				}
 				pFile->Release();
 			}
+
 			CoUninitialize();
 		}
 	}
@@ -676,8 +688,8 @@ void TW_CALL Import(void *clientData)
 			MB_ICONERROR | MB_OK);
 		return;
 	}
-	
 	view = 0;
+	InitializeCamera();
 
 	//Test reading file
 	std::ifstream file;
@@ -909,13 +921,6 @@ void InitializeGUI()
 	SetLabel ();
 }
 
-void InitializeCamera ()
-{
-	camera.Initialize (glm::vec3(0.0f, 4.0f, -8.0f), glm::vec3(0.0f, 0.0f, 0.0f), width, height);
-	View	   = camera.GetView ();
-	Projection = camera.GetProj ();
-	Ortho	   = camera.GetOrtho ();
-}
 
 
 
@@ -1035,7 +1040,7 @@ void Update (double deltaTime)
 {
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
 	{
-		glm::mat4 cam = camera.GetView();
+/*		glm::mat4 cam = camera.GetView();
 		glm::vec3 pos = camera.GetPos();
 
 		GetCursorPos(&p);
@@ -1052,7 +1057,7 @@ void Update (double deltaTime)
 		//cam = glm::lookAt(pos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 		camera.SetPos(pos);
-		camera.SetView(cam);
+		camera.SetView(cam);*/
 	}
 
 	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
