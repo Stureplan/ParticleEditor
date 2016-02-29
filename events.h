@@ -15,7 +15,7 @@
 
 std::string currentFilename;
 
-void ChangePreview();
+void StopPreview();
 void RetexturePreview(std::string);
 
 
@@ -44,7 +44,9 @@ public:
 	}
 
 	// IFileDialogEvents methods
-	IFACEMETHODIMP OnSelectionChange(IFileDialog *);
+	IFACEMETHODIMP OnSelectionChange(IFileDialog*);
+	IFACEMETHODIMP OnFileOk(IFileDialog*);
+
 
 	IFACEMETHODIMP OnFolderChange(IFileDialog *) { return S_OK; };
 	IFACEMETHODIMP OnFolderChanging(IFileDialog *, IShellItem *) { return S_OK; };
@@ -54,7 +56,7 @@ public:
 	IFACEMETHODIMP OnOverwrite(IFileDialog *, IShellItem *, FDE_OVERWRITE_RESPONSE *) { return S_OK; };
 
 	// IFileDialogControlEvents methods
-	IFACEMETHODIMP OnFileOk(IFileDialog *pfd) { return S_OK; };
+	//IFACEMETHODIMP OnFileOk(IFileDialog *pfd) { return S_OK; };
 	IFACEMETHODIMP OnItemSelected(IFileDialogCustomize *, DWORD, DWORD) { return S_OK; };
 	IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize *, DWORD) { return S_OK; };
 	IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize *, DWORD, BOOL) { return S_OK; };
@@ -98,8 +100,6 @@ IFACEMETHODIMP CDialogEventHandler::OnSelectionChange(IFileDialog* fileDialog)
 
 		if (fileName.size() != 0)
 		{
-
-			ChangePreview();
 			RetexturePreview(fileName);
 		}
 	}
@@ -111,6 +111,11 @@ IFACEMETHODIMP CDialogEventHandler::OnSelectionChange(IFileDialog* fileDialog)
 	return S_OK;
 }
 
+IFACEMETHODIMP CDialogEventHandler::OnFileOk(IFileDialog* fileDialog)
+{
+	StopPreview();
+	return S_OK;
+}
 
 
 

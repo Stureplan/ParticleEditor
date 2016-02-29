@@ -250,9 +250,10 @@ void CreateShaders()
 	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 }
 
-void ChangePreview()
+void StopPreview()
 {
-	change = true;
+	//change = true;
+	view = 0;
 }
 
 void RetexturePreview(std::string PSysName)
@@ -260,18 +261,14 @@ void RetexturePreview(std::string PSysName)
 	view = 1;
 
 	glfwMakeContextCurrent(preview);
-	//glewExperimental = GL_TRUE;
-	//glewInit();
-	//glfwSwapInterval(0);
 	glViewport(0, 0, 240, 240);
 	glfwShowWindow(preview);
 
 
 
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-	float c = 0.0f;
+	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 
-	change = false;
+	//change = false;
 	while (view != 0)
 	{
 
@@ -284,13 +281,13 @@ void RetexturePreview(std::string PSysName)
 		glOrtho(-1.7f, 1.7f, -1.f, 1.f, 1.f, -1.f);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
+		glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.0f);
 		glBegin(GL_TRIANGLES);
-		glColor3f(1.f, 0.f, 0.f);
+		glColor3f(1.f, 0.f, 1.0f);
 		glVertex3f(-0.6f, -0.4f, 0.f);
-		glColor3f(0.f, 1.f, 0.f);
+		glColor3f(1.f, 0.f, 1.0f);
 		glVertex3f(0.6f, -0.4f, 0.f);
-		glColor3f(0.f, 0.f, 1.f);
+		glColor3f(1.f, 0.f, 1.0f);
 		glVertex3f(0.f, 0.6f, 0.f);
 		glEnd();
 			
@@ -302,17 +299,9 @@ void RetexturePreview(std::string PSysName)
 
 		POINT pt;
 		GetCursorPos(&pt);
-		//glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
-
-		if (change)
-		{
-			break;
-		}
+		glfwSetWindowPos(preview, pt.x + 20, pt.y + 20);
 	}
 	
-	view = 0;
-	//glfwDestroyWindow(preview);
-	//glfwTerminate();
 	glfwHideWindow(preview);
 	glfwMakeContextCurrent(window);
 }
@@ -589,7 +578,6 @@ void TW_CALL Import(void *clientData)
 					//Filepath from file
 					LPWSTR fPath;
 					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &fPath);
-
 					if (SUCCEEDED(hr))
 					{
 						fResult = WCHAR_TO_STRING(fPath);
