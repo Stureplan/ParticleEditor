@@ -95,13 +95,9 @@ bool		CURRENT_REPEAT = true;
 bool		CURRENT_GLOW = false;
 bool		RENDER_DIR = true;
 int			CURRENT_SCALEDIR = 0;
-bool press = false;
 glm::vec3	CURRENT_ROT;
 
 double dt = 0.0f;
-
-float input_cooldown = 0.3f;
-float input_current = 0.3f;
 
 std::vector<std::string> texturenames;
 std::vector<TextureData> texturedata;
@@ -982,11 +978,6 @@ glm::vec3 GetInputDir (double deltaTime)
 
 void Update (double deltaTime)
 {
-	if (input_current > 0.0f)
-	{
-		input_current = input_current - (float) deltaTime;
-	}
-
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
 	{
 		glm::mat4 cam = camera.GetView();
@@ -1007,38 +998,6 @@ void Update (double deltaTime)
 
 		camera.SetPos(pos);
 		camera.SetView(cam);
-	}
-
-
-	if (GetAsyncKeyState (0x54) & 0x8000 && input_current <= 0.0f )
-	{
-		input_current = input_cooldown;
-		if (CURRENT_TEXTURE+1 >= texturedata.size ())
-		{
-			CURRENT_TEXTURE = 0;
-		}
-		else
-		{
-			CURRENT_TEXTURE++;
-		}
-
-		ps->Retexture (&texturedata[CURRENT_TEXTURE]);
-		ui_particle->Rebuild (&texturedata[CURRENT_TEXTURE]);
-		SetLabel ();
-
-	}
-
-
-	if (GetAsyncKeyState(VK_TAB) && press == false)
-	{
-		bool active = arrow->IsActive();
-		arrow->SetActive(!active);
-		sphere->SetActive(active);
-		press = true;
-	}
-	else if (!GetAsyncKeyState(VK_TAB))
-	{
-		press = false;
 	}
 
 	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
@@ -1206,16 +1165,44 @@ void Render()
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	TwEventKeyGLFW(key, action);
-
+	//TW Key codes
 	switch (key)
 	{
 	case GLFW_KEY_E:
-		key = TW_KEY_E;
+		if (action == GLFW_PRESS) { key = TW_KEY_E; }
+		break;
+	case GLFW_KEY_R:
+		key = TW_KEY_R;
 		break;
 	}
 
+
 	TwKeyPressed(key, TW_KMOD_NONE);
+
+	//Regular key codes (non-TW related)
+	if (key == GLFW_KEY_T && action == GLFW_PRESS)
+	{
+		if (CURRENT_TEXTURE + 1 >= texturedata.size())
+		{
+			CURRENT_TEXTURE = 0;
+		}
+		else
+		{
+			CURRENT_TEXTURE++;
+		}
+
+		ps->Retexture(&texturedata[CURRENT_TEXTURE]);
+		ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
+		SetLabel();
+	}
+
+	if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+	{
+		bool active = arrow->IsActive();
+		arrow->SetActive(!active);
+		sphere->SetActive(active);
+	}
+
 }
 
 void mouse_pos(GLFWwindow* window, double x, double y)
@@ -1238,6 +1225,12 @@ void mouse_click(GLFWwindow* window, int button, int action, int mods)
 		break;
 	case GLFW_MOUSE_BUTTON_3:
 		id = TW_MOUSE_MIDDLE;
+		break;
+	case GLFW_MOUSE_BUTTON_4:
+		id = (TwMouseButtonID)0;
+		break;
+	case GLFW_MOUSE_BUTTON_5:
+		id = (TwMouseButtonID)0;
 		break;
 	}
 	
@@ -1273,7 +1266,7 @@ int main(void)
 
 	glewExperimental = GL_TRUE;
 	glewInit();
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	InitializeCamera();
 	CreateShaders();
@@ -1285,13 +1278,35 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_click);
 	glfwSetCursorPosCallback(window, mouse_pos);
 	glfwSetKeyCallback(window, key_callback);
+	//TODO: Deal with input chars (includes 0-9?)
 	glfwSetCharCallback(window, (GLFWcharfun)TwEventCharGLFW);
-
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+	double deltaTime = 0;
+	double lastTime = 0;
+	double timer = 0;
+	int frames = 0;
+	int FPS = 0;
 
 	while (!glfwGetKey(window, GLFW_KEY_ESCAPE))
 	{
-		Update(0.02);
+		deltaTime = glfwGetTime() - lastTime;
+		lastTime = glfwGetTime();
+
+		timer += deltaTime;
+
+		frames++;
+
+		if (timer > 1.0)
+		{
+			FPS = frames;
+			timer = 0;
+			frames = 0;
+		}
+
+		
+		glfwSetWindowTitle(window, std::to_string(FPS).c_str());
+		Update(deltaTime);
 		Render();
 		glfwSwapBuffers(window);
 		glfwPollEvents();

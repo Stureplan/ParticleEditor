@@ -255,7 +255,8 @@ typedef enum EKeySpecial
     TW_KEY_LAST,
 
 	//Custom keys I need
-	TW_KEY_E = 0x65
+	TW_KEY_E = 0x65,
+	TW_KEY_R = 0x72
 
 } TwKeySpecial;
 
