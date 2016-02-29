@@ -1130,6 +1130,39 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	case GLFW_KEY_ENTER:
 		key = TW_KEY_RETURN;
 		break;
+	case GLFW_KEY_KP_ENTER:
+		key = TW_KEY_RETURN;
+		break;
+	case GLFW_KEY_KP_0:
+		key = 0x30;
+		break;
+	case GLFW_KEY_KP_1:
+		key = 0x31;
+		break;
+	case GLFW_KEY_KP_2:
+		key = 0x32;
+		break;
+	case GLFW_KEY_KP_3:
+		key = 0x33;
+		break;
+	case GLFW_KEY_KP_4:
+		key = 0x34;
+		break;
+	case GLFW_KEY_KP_5:
+		key = 0x35;
+		break;
+	case GLFW_KEY_KP_6:
+		key = 0x36;
+		break;
+	case GLFW_KEY_KP_7:
+		key = 0x37;
+		break;
+	case GLFW_KEY_KP_8:
+		key = 0x38;
+		break;
+	case GLFW_KEY_KP_9:
+		key = 0x39;
+		break;
 	}
 
 	if (action == GLFW_PRESS) TwKeyPressed(key, TW_KMOD_NONE);
@@ -1200,6 +1233,7 @@ void mouse_click(GLFWwindow* window, int button, int action, int mods)
 	}
 
 	TwMouseButton(ac, id);
+	
 }
 
 int main(void)
