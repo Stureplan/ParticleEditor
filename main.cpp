@@ -1172,6 +1172,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	case GLFW_KEY_SLASH:
 		key = '\-';
 		break;
+	case GLFW_KEY_BACKSPACE:
+		key = TW_KEY_BACKSPACE;
+		break;
 	}
 
 	if (action == GLFW_PRESS) TwKeyPressed(key, TW_KMOD_NONE);
