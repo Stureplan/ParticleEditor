@@ -1163,6 +1163,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	case GLFW_KEY_KP_9:
 		key = 0x39;
 		break;
+	case GLFW_KEY_MINUS:
+		key = '\-';
+		break;
+	case GLFW_KEY_KP_SUBTRACT:
+		key = '\-';
+		break;
+	case GLFW_KEY_SLASH:
+		key = '\-';
+		break;
 	}
 
 	if (action == GLFW_PRESS) TwKeyPressed(key, TW_KMOD_NONE);
