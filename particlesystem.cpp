@@ -322,7 +322,10 @@ void ParticleSystem::Render()
 {
 	glUseProgram (m_shader);
 	glEnable (GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glDepthMask(GL_FALSE);
 
 	//Texture
 	glActiveTexture (GL_TEXTURE0);
@@ -344,6 +347,9 @@ void ParticleSystem::Render()
 
 	glDisableVertexAttribArray(vtxpos);
 	glDisableVertexAttribArray(vtxdir);
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
 
 void ParticleSystem::RenderLightning()

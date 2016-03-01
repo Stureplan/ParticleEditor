@@ -266,13 +266,19 @@ void RetexturePreview(std::string PSysName)
 
 	while (view != 0)
 	{
+
+
 		deltaTime = glfwGetTime() - lastTime;
 		lastTime = glfwGetTime();
 
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glDepthMask(GL_FALSE);
+
 
 		//Update
 		ps2->Update(deltaTime, &exPS, camera.GetPos());
@@ -1032,6 +1038,7 @@ void Render()
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable (GL_DEPTH_TEST);
 	glDepthFunc (GL_LESS);
+
 	
 	View = camera.GetView ();
 
