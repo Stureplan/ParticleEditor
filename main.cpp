@@ -114,7 +114,8 @@ TwBar* BarGUI;
 TwBar* BarControls;
 
 //Input variables
-POINT p;
+POINT* p;
+double mX, mY;
 float mousespeed = 0.005f;
 float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
@@ -122,7 +123,7 @@ float MoveSpeed = 5.0f;
 
 bool change = false;
 
-
+int mbab = 0;
 
 void SetFPS(int fps)
 {
@@ -1239,6 +1240,8 @@ void mouse_click(GLFWwindow* window, int button, int action, int mods)
 	case GLFW_MOUSE_BUTTON_5:
 		id = (TwMouseButtonID)0;
 		break;
+	default:
+		break;
 	}
 	
 	switch (action)
@@ -1249,10 +1252,13 @@ void mouse_click(GLFWwindow* window, int button, int action, int mods)
 	case GLFW_RELEASE:
 		ac = TW_MOUSE_RELEASED;
 		break;
+	default:
+		break;
 	}
 
 	TwMouseButton(ac, id);
 	
+
 }
 
 int main(void)
@@ -1302,6 +1308,8 @@ int main(void)
 	int frames = 0;
 	int FPS = 0;
 
+	int mb = 0;
+
 	while (!glfwGetKey(window, GLFW_KEY_ESCAPE))
 	{
 		deltaTime = glfwGetTime() - lastTime;
@@ -1320,10 +1328,25 @@ int main(void)
 
 		glfwSetWindowTitle(window, std::to_string(FPS).c_str());
 
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+		{
+			glm::mat4 cam = camera.GetView();
+
+			//GetCursorPos(&p);
+			//relative to upper-left corner (0, 0)
+			glfwGetCursorPos(window, &mX, &mY);
+			mX = mX + width / 2;
+			mY = mY + height / 2;
+
+
+			cam = glm::rotate(cam, (float)mX * (float)deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+			glfwSetCursorPos(window, width / 2, height / 2);
+
+			camera.SetView(cam);
+		}
+
 		Update(deltaTime);
 		Render();
-
-
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
