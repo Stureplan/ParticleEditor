@@ -70,32 +70,34 @@ glm::mat4 Projection = glm::mat4(1.0f);
 glm::mat4 Ortho		 = glm::mat4(1.0f);
 glm::mat4 MVP		 = glm::mat4(1.0f);		//model * view * projection
 
-//UI Variables
-glm::vec3	CameraPos	  = glm::vec3 (1.0f);
-glm::vec2	CURRENT_SCALE = glm::vec2 (1.0f);
-
 //Particle UI Variables
 glm::vec2 FakeCurrentScale = glm::vec2 (1.0f, 1.0f);
 
+//Player variables
 int			CURRENT_FPS = 0;
 int			CURRENT_TEXTURE = 0;
+int			CURRENT_ACTIVE = 0;
+std::string CURRENT_LABEL;
+bool		RENDER_DIR = true;
+
+//Particle System Data
+glm::vec3	CURRENT_ROT;
+float		CURRENT_WIDTH;
+float		CURRENT_HEIGHT;
 int			CURRENT_VTXCOUNT = 0;
 int			CURRENT_VTXCOUNT_DIFF = 0;
-int			CURRENT_ACTIVE = 0;
+float		CURRENT_LIFETIME = 1.0f;
+float		CURRENT_EMISSION = 0.0f;
+float		CURRENT_EMISSION_DIFF = 0.0f;
 float		CURRENT_FORCE = 0.0f;
 float		CURRENT_DRAG = 0.0f;
 float		CURRENT_GRAVITY = 0.0f;
-std::string CURRENT_LABEL;
-float		CURRENT_EMISSION = 0.0f;
-float		CURRENT_EMISSION_DIFF = 0.0f;
-float		CURRENT_LIFETIME = 1.0f;
+bool		CURRENT_REPEAT = true;
+//current omni
 int			CURRENT_SEED = 0;
 float		CURRENT_SPREAD = 0.0f;
-bool		CURRENT_REPEAT = true;
 bool		CURRENT_GLOW = false;
-bool		RENDER_DIR = true;
 int			CURRENT_SCALEDIR = 0;
-glm::vec3	CURRENT_ROT;
 
 double dt = 0.0f;
 
@@ -428,22 +430,7 @@ void TW_CALL Export(void *clientData)
 	//Texturesize is how long the string is * bytes
 	texturesize = strlen(texture) * sizeof(const char);
 	totalsize = texturesize;				//texturename
-	//totalsize += sizeof(ParticleSystemData);
-	totalsize += sizeof(float) * 3;			//glm::vec3 dir
-	totalsize += sizeof(float);				//float width
-	totalsize += sizeof(float);				//float height
-	totalsize += sizeof(int);				//int maxparticles
-	totalsize += sizeof(float);				//float lifetime
-	totalsize += sizeof(float);				//float emission
-	totalsize += sizeof(float);				//float force
-	totalsize += sizeof(float);				//float drag
-	totalsize += sizeof(float);				//float gravity
-	totalsize += sizeof(int);				//bool continuous
-	totalsize += sizeof(int);				//bool omni
-	totalsize += sizeof(int);				//int seed
-	totalsize += sizeof(float);				//float spread
-	totalsize += sizeof(int);				//int glow (0-1)
-	totalsize += sizeof(int);				//int scaleDir (-1/0/1)
+	totalsize += sizeof(ParticleSystemData);
 
 	//Opens file
 	std::ofstream file;
@@ -591,8 +578,8 @@ void TW_CALL Import(void *clientData)
 	BeepNoise(SUCCESS);
 
 	CURRENT_ROT = exPS.dir;
-	CURRENT_SCALE.x = exPS.width;
-	CURRENT_SCALE.y = exPS.height;
+	CURRENT_WIDTH = exPS.width;
+	CURRENT_HEIGHT = exPS.height;
 	CURRENT_FORCE = exPS.force;
 	CURRENT_DRAG = exPS.drag;
 	CURRENT_GRAVITY = exPS.gravity;
@@ -632,7 +619,6 @@ void TW_CALL Import(void *clientData)
 	SetLabel();
 
 	arrow->SetActive(!exPS.omni);
-	//TODO: make sure seed is imported into exTD
 	ui_particle->Rebuild(&exTD);
 	ps->Retexture(&exTD);
 	ps->Rebuild(&exPS);
@@ -696,8 +682,8 @@ void TW_CALL Randomize(void *clientData)
 	CURRENT_VTXCOUNT = temp.maxparticles;
 	CURRENT_EMISSION = temp.emission;
 	CURRENT_LIFETIME = temp.lifetime;
-	CURRENT_SCALE.x = temp.width;
-	CURRENT_SCALE.y = temp.height;
+	CURRENT_WIDTH = temp.width;
+	CURRENT_HEIGHT = temp.height;
 	CURRENT_ROT = temp.dir;
 	CURRENT_FORCE = temp.force;
 	CURRENT_GRAVITY = temp.gravity;
@@ -765,8 +751,8 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Emission Delay:", TW_TYPE_FLOAT, &CURRENT_EMISSION, "min=0.0f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=50.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
-	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_SCALE.x, "min=0.05f max=20.0f step=0.01f");
-	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_SCALE.y, "min=0.05f max=10.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_WIDTH, "min=0.05f max=20.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_HEIGHT, "min=0.05f max=10.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROT.x, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROT.y, "min=-1.0f max=1.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROT.z, "min=-1.0f max=1.0f step=0.05f");
@@ -848,8 +834,8 @@ void CreateObjects()
 	temp.glow = false;
 	temp.scaleDir = 0;
 
-	CURRENT_SCALE.x = temp.width;
-	CURRENT_SCALE.y = temp.height;
+	CURRENT_WIDTH = temp.width;
+	CURRENT_HEIGHT = temp.height;
 	CURRENT_FORCE = temp.force;
 	CURRENT_DRAG = temp.drag;
 	CURRENT_GRAVITY = temp.gravity;
@@ -890,46 +876,8 @@ void SetViewport(HWND hwnd)
 	glViewport(0, 0, width, height);
 }
 
-glm::vec3 GetInputDir (double deltaTime)
-{
-	//horizontalAngle -= mousespeed * float (width / 2 - p.x);
-	horizontalAngle = horizontalAngle - 1.0f * deltaTime;
-
-	glm::vec3 dir = glm::vec3(cos (verticalAngle) * sin (horizontalAngle),
-							  sin (verticalAngle),
-							  cos (verticalAngle) * cos (horizontalAngle));
-
-	dir = glm::normalize (dir);
-
-	CURRENT_ROT = { dir.x, dir.y, dir.z };
-
-	return dir;
-}
-
 void Update (double deltaTime)
 {
-	if (GetAsyncKeyState(VK_SPACE) & 0x8000)  //the button is being held currently
-	{
-/*		glm::mat4 cam = camera.GetView();
-		glm::vec3 pos = camera.GetPos();
-
-		GetCursorPos(&p);
-		//ScreenToClient(windowReference, &p);
-		p.x = width / 2;
-		p.y = height / 2;
-
-		//ClientToScreen(windowReference, &p);
-		SetCursorPos(p.x, p.y);
-
-
-		cam = glm::rotate(cam, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		//cam = glm::lookAt(pos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
-		camera.SetPos(pos);
-		camera.SetView(cam);*/
-	}
-
 	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
 	{
 		Rebuild((void*)0);
@@ -952,13 +900,10 @@ void Update (double deltaTime)
 	ui_particle	->Update ();
 	ui_keys		->Update();
 
-	//Update shader variables
-	CameraPos = camera.GetPos();
-
 	//Update temp with new values
 	temp.dir		= CURRENT_ROT;
-	temp.width		= CURRENT_SCALE.x;
-	temp.height		= CURRENT_SCALE.y;
+	temp.width		= CURRENT_WIDTH;
+	temp.height		= CURRENT_HEIGHT;
 	temp.force		= CURRENT_FORCE;
 	temp.drag		= CURRENT_DRAG;
 	temp.gravity	= CURRENT_GRAVITY;
@@ -1039,8 +984,8 @@ void Render()
 	glm::mat4 VP = glm::mat4 (1.0f);
 	VP = Projection * View;
 	glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
-	glUniform3fv(ps_CamID, 1, glm::value_ptr(CameraPos));
-	glUniform2fv(ps_SizeID, 1, glm::value_ptr(CURRENT_SCALE));
+	glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
+	glUniform2fv(ps_SizeID, 1, glm::value_ptr(glm::vec2(CURRENT_WIDTH, CURRENT_HEIGHT)));
 	glUniform1i(ps_GlowID, CURRENT_GLOW);
 	ps->Render();
 
