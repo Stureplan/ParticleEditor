@@ -1182,6 +1182,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		break;
 	case GLFW_KEY_BACKSPACE:
 		key = TW_KEY_BACKSPACE;
+	case GLFW_KEY_COMMA:
+		key = TW_KEY_PERIOD;
+	case GLFW_KEY_KP_DECIMAL:
+		key = TW_KEY_PERIOD;
 		break;
 	}
 

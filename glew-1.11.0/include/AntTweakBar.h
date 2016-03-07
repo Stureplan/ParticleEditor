@@ -256,7 +256,8 @@ typedef enum EKeySpecial
 
 	//Custom keys I need
 	TW_KEY_E = 0x65,
-	TW_KEY_R = 0x72
+	TW_KEY_R = 0x72,
+	TW_KEY_PERIOD = 0x2E
 
 } TwKeySpecial;
 
