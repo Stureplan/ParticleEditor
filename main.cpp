@@ -1107,7 +1107,7 @@ int main(void)
 	int frames = 0;
 	int FPS = 0;
 
-	while (!glfwGetKey(window, GLFW_KEY_ESCAPE))
+	while (!glfwGetKey(window, GLFW_KEY_ESCAPE) && !glfwWindowShouldClose(window))
 	{
 		deltaTime = glfwGetTime() - lastTime;
 		lastTime = glfwGetTime();

@@ -1,9 +1,7 @@
-﻿Build started 2016-03-07 11:50:16.
+﻿Build started 2016-03-07 14:19:26.
      1>Project "C:\Users\John Cena\Documents\GitHub\OpenGL\Demo.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Camera.cpp loader.cpp main.cpp object.cpp particlesystem.cpp Win32InputBox.cpp
-         Camera.cpp
-         loader.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
          main.cpp
      1>c:\users\john cena\documents\github\opengl\events.h(31): warning C4838: conversion from 'DWORD' to 'int' requires a narrowing conversion
      1>main.cpp(301): warning C4996: '_swprintf': This function or variable may be unsafe. Consider using _swprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
@@ -12,26 +10,6 @@
      1>main.cpp(975): warning C4129: '-': unrecognized character escape sequence
      1>main.cpp(978): warning C4129: '-': unrecognized character escape sequence
      1>main.cpp(1019): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-         object.cpp
-     1>object.cpp(203): warning C4474: 'printf' : too many arguments passed for format string
-         object.cpp(203): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-     1>object.cpp(205): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
-     1>object.cpp(217): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
-     1>object.cpp(226): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
-     1>object.cpp(232): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
-     1>object.cpp(238): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
-     1>object.cpp(248): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
-         particlesystem.cpp
-     1>particlesystem.cpp(192): warning C4018: '<': signed/unsigned mismatch
-     1>particlesystem.cpp(256): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
-         Win32InputBox.cpp
-     1>Win32InputBox.cpp(149): warning C4302: 'type cast': truncation from 'LPCTSTR' to 'WORD'
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\John Cena\Documents\GitHub\OpenGL\Release\Demo.exe" /INCREMENTAL:NO /NOLOGO opengl32.lib SOIL.lib glew32.lib glfw3.lib AntTweakBar.lib Ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\John Cena\Documents\GitHub\OpenGL\Release\Demo.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /ENTRY:"mainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\John Cena\Documents\GitHub\OpenGL\Release\Demo.lib" /MACHINE:X86 /SAFESEH Release\Camera.obj
          Release\loader.obj
@@ -42,7 +20,7 @@
      1>SOIL.lib(SOIL.obj) : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:ICF' specification
      1>LINK : warning LNK4098: defaultlib 'MSVCRTD' conflicts with use of other libs; use /NODEFAULTLIB:library
          Generating code
-         0 of 903 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+         1 of 903 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
            0 functions were new in current compilation
            0 functions had inline decision re-evaluated but remain unchanged
          Finished generating code
@@ -55,4 +33,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:04.29
+Time Elapsed 00:00:02.75
