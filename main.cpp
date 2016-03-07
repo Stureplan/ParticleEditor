@@ -1330,19 +1330,30 @@ int main(void)
 
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
 		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			
+
+
 			glm::mat4 cam = camera.GetView();
 
 			//GetCursorPos(&p);
 			//relative to upper-left corner (0, 0)
 			glfwGetCursorPos(window, &mX, &mY);
-			mX = mX + width / 2;
-			mY = mY + height / 2;
+			mX = mX - width / 2;
+			
+			float angleX = 0.0f;
+			angleX -= mX;
+			
+			cam = glm::rotate(cam, angleX * (float)deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
 
-
-			cam = glm::rotate(cam, (float)mX * (float)deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
 			glfwSetCursorPos(window, width / 2, height / 2);
 
 			camera.SetView(cam);
+		}
+
+		else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE)
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 
 		Update(deltaTime);
