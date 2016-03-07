@@ -14,7 +14,7 @@
     <ProjectGuid>{9AFF6E4E-5D21-4DDE-948B-0E6BE0365098}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>RayCastLab</RootNamespace>
-    <ProjectName>Demo</ProjectName>
+    <ProjectName>ParticleEditor</ProjectName>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -90,7 +90,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="camera.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="object.cpp" />
