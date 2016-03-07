@@ -21,7 +21,6 @@
 #include <fstream>
 #include <shobjidl.h>
 
-
 //Additional includes
 #include "structs.h"
 #include "functions.h"
@@ -47,7 +46,6 @@ GLFWwindow* window;
 //Window 2
 int view = 1;
 GLFWwindow* preview;
-
 
 //Pointer variables
 GLuint program = 0;
@@ -115,7 +113,6 @@ int CheckTexture(const char* texturename)
 			number = i;
 		}
 	}
-
 
 	return number;
 }
@@ -237,14 +234,10 @@ void RetexturePreview(std::string PSysName)
 	double lastTime = 0;
 	double timer = 0;
 
-
 	while (view != 0)
 	{
-
-
 		deltaTime = glfwGetTime() - lastTime;
 		lastTime = glfwGetTime();
-
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_BLEND);
@@ -585,8 +578,6 @@ void TW_CALL Import(void *clientData)
 
 void TW_CALL Rebuild(void *clientData)
 {
-	//CURRENT_PS.maxparticles = CURRENT_PS.maxparticles;
-	//CURRENT_PS.seed = CURRENT_PS.seed;
 	ps->Rebuild(&CURRENT_PS);
 }
 
@@ -622,7 +613,7 @@ void TW_CALL Randomize(void *clientData)
 	CURRENT_PS.dir.z = RandFloat(-1.0f, 1.0f);
 
 	//Randomize force
-	CURRENT_PS.force = RandFloat(-5.0f, 10.0f);
+	CURRENT_PS.force = RandFloat(0.0f, 10.0f);
 
 	//Randomize gravity
 	CURRENT_PS.gravity = RandFloat(-1.0f, 1.0f);
@@ -766,7 +757,7 @@ void CreateObjects()
 	unsigned int x, y;
 	PNGSize(keys_tex.texturename, x, y);
 
-	//Standard Particle System
+	//Default Particle System
 	CURRENT_PS.width = 0.20000f;
 	CURRENT_PS.height = 0.200000f;
 	CURRENT_PS.lifetime = 1.0f;
@@ -1079,7 +1070,6 @@ void mouse_click(GLFWwindow* window, int button, int action, int mods)
 
 int main(void)
 {
-
 	glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -1094,7 +1084,7 @@ int main(void)
 	glewInit();
 	glfwSwapInterval(0);
 
-	//Window 2 ----
+	// Window 2---
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_FOCUSED, GL_TRUE);
 	glfwWindowHint(GLFW_DECORATED, GL_FALSE);
@@ -1144,12 +1134,9 @@ int main(void)
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
 		{
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-			
-
 
 			glm::mat4 cam = camera.GetView();
 
-			//GetCursorPos(&p);
 			//relative to upper-left corner (0, 0)
 			glfwGetCursorPos(window, &mX, &mY);
 			mX = mX - width / 2;

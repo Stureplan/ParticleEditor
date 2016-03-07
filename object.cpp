@@ -44,7 +44,6 @@ void Object::Initialize ()
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
 	//Initialize model matrix
 	Model = glm::mat4 (1.0f);
 
@@ -105,7 +104,6 @@ void Object::Update ()
 		Translation = glm::translate (Translation, m_position);
 		Model = Model * Scale;
 		Model = Model * Translation;
-
 	}
 
 	//"Correct" objects
@@ -192,10 +190,6 @@ bool Object::IsActive()
 
 void Object::SetActive(bool active)
 {
-	//glDeleteBuffers(1, &vertexbuffer);
-	//glDeleteBuffers(1, &colorbuffer);
-	//glDeleteBuffers(1, &uvbuffer);
-
 	m_active = active;
 }
 
