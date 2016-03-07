@@ -61,8 +61,6 @@ GLuint ps_GlowID;
 GLuint ps_lprogram = 0;
 GLuint ps_lMatrixID;
 
-ParticleSystemData temp;
-
 //Matrices
 glm::mat4 Model		 = glm::mat4(1.0f);
 glm::mat4 View		 = glm::mat4(1.0f);
@@ -70,34 +68,18 @@ glm::mat4 Projection = glm::mat4(1.0f);
 glm::mat4 Ortho		 = glm::mat4(1.0f);
 glm::mat4 MVP		 = glm::mat4(1.0f);		//model * view * projection
 
-//Particle UI Variables
-glm::vec2 FakeCurrentScale = glm::vec2 (1.0f, 1.0f);
-
 //Player variables
 int			CURRENT_FPS = 0;
-int			CURRENT_TEXTURE = 0;
+unsigned int			CURRENT_TEXTURE = 0;
 int			CURRENT_ACTIVE = 0;
 std::string CURRENT_LABEL;
 bool		RENDER_DIR = true;
 
 //Particle System Data
-glm::vec3	CURRENT_ROT;
-float		CURRENT_WIDTH;
-float		CURRENT_HEIGHT;
-int			CURRENT_VTXCOUNT = 0;
+ParticleSystemData CURRENT_PS;
+
 int			CURRENT_VTXCOUNT_DIFF = 0;
-float		CURRENT_LIFETIME = 1.0f;
-float		CURRENT_EMISSION = 0.0f;
 float		CURRENT_EMISSION_DIFF = 0.0f;
-float		CURRENT_FORCE = 0.0f;
-float		CURRENT_DRAG = 0.0f;
-float		CURRENT_GRAVITY = 0.0f;
-bool		CURRENT_REPEAT = true;
-//current omni
-int			CURRENT_SEED = 0;
-float		CURRENT_SPREAD = 0.0f;
-bool		CURRENT_GLOW = false;
-int			CURRENT_SCALEDIR = 0;
 
 double dt = 0.0f;
 
@@ -136,7 +118,7 @@ int CheckTexture(const char* texturename)
 {
 	int number = 0;
 
-	for (int i = 0; i < texturenames.size(); i++)
+	for (unsigned int i = 0; i < texturenames.size(); i++)
 	{
 		if (texturenames.at(i) == texturename)
 		{
@@ -405,7 +387,7 @@ void TW_CALL Export(void *clientData)
 	float amount;
 	float result;
 
-	amount = ps_temp->maxparticles - ps->GetActiveParticles();
+	amount = (float)ps_temp->maxparticles - (float)ps->GetActiveParticles();
 	result = (float)amount / (float)ps_temp->maxparticles;
 
 	//30% or more than the used particles
@@ -577,21 +559,9 @@ void TW_CALL Import(void *clientData)
 	//File found and filename is fResult
 	BeepNoise(SUCCESS);
 
-	CURRENT_ROT = exPS.dir;
-	CURRENT_WIDTH = exPS.width;
-	CURRENT_HEIGHT = exPS.height;
-	CURRENT_FORCE = exPS.force;
-	CURRENT_DRAG = exPS.drag;
-	CURRENT_GRAVITY = exPS.gravity;
-	CURRENT_VTXCOUNT = exPS.maxparticles;
+	CURRENT_PS = exPS;
 	CURRENT_VTXCOUNT_DIFF = 0;
-	CURRENT_EMISSION = exPS.emission;
 	CURRENT_EMISSION_DIFF = exPS.emission;
-	CURRENT_LIFETIME = exPS.lifetime;
-	CURRENT_SEED = exPS.seed;
-	CURRENT_SPREAD = exPS.spread;
-	CURRENT_GLOW = exPS.glow;
-	CURRENT_SCALEDIR = exPS.scaleDir;
 
 	std::string name = "Data/Textures/";
 	name.append(f);
@@ -626,85 +596,74 @@ void TW_CALL Import(void *clientData)
 
 void TW_CALL Rebuild(void *clientData)
 {
-	temp.maxparticles = CURRENT_VTXCOUNT;
-	temp.seed = CURRENT_SEED;
-	ps->Rebuild(&temp);
+	//CURRENT_PS.maxparticles = CURRENT_PS.maxparticles;
+	//CURRENT_PS.seed = CURRENT_PS.seed;
+	ps->Rebuild(&CURRENT_PS);
 }
 
 void TW_CALL Randomize(void *clientData)
 {
 	//Randomize emission delay
-	temp.emission = RandFloat(0.0f, 0.2f);
+	CURRENT_PS.emission = RandFloat(0.0f, 0.2f);
 	int explosion = RandInt(0, 1);
 	if (explosion == 1)
 	{
-		temp.emission = 0.0f;
+		CURRENT_PS.emission = 0.0f;
 
 		//Randomize maxparticles
-		temp.maxparticles = RandInt(1, 2000);
+		CURRENT_PS.maxparticles = RandInt(1, 2000);
 	}
 	else
 	{
 		//Randomize maxparticles
-		temp.maxparticles = RandInt(1, 250);
+		CURRENT_PS.maxparticles = RandInt(1, 250);
 	}
 
 
 	//Randomize lifetime
-	temp.lifetime = RandFloat(0.1f, 2.0f);
+	CURRENT_PS.lifetime = RandFloat(0.1f, 2.0f);
 
 	//Randomize scale
-	temp.width = RandFloat(0.1f, 0.5f);
-	temp.height = RandFloat(0.1f, 0.5f);
+	CURRENT_PS.width = RandFloat(0.1f, 0.5f);
+	CURRENT_PS.height = RandFloat(0.1f, 0.5f);
 
 	//Randomize direction
-	temp.dir.x = RandFloat(-1.0f, 1.0f);
-	temp.dir.y = RandFloat(-1.0f, 1.0f);
-	temp.dir.z = RandFloat(-1.0f, 1.0f);
+	CURRENT_PS.dir.x = RandFloat(-1.0f, 1.0f);
+	CURRENT_PS.dir.y = RandFloat(-1.0f, 1.0f);
+	CURRENT_PS.dir.z = RandFloat(-1.0f, 1.0f);
 
 	//Randomize force
-	temp.force = RandFloat(-5.0f, 10.0f);
+	CURRENT_PS.force = RandFloat(-5.0f, 10.0f);
 
 	//Randomize gravity
-	temp.gravity = RandFloat(-1.0f, 1.0f);
+	CURRENT_PS.gravity = RandFloat(-1.0f, 1.0f);
 
 	//Randomize texture
 	CURRENT_TEXTURE = RandInt(0, texturenames.size()-1);
 
 	//Randomize seed
-	temp.seed = RandInt(0, 1000);
+	CURRENT_PS.seed = RandInt(0, 1000);
 
 	//Randomize spread
-	temp.spread = RandFloat(0.0f, 1.0f);
+	CURRENT_PS.spread = RandFloat(0.0f, 1.0f);
+	
+	//Randomize glow
+	CURRENT_PS.glow = RandInt(0, 1);
 
-	temp.scaleDir = 0;
-
-	CURRENT_VTXCOUNT = temp.maxparticles;
-	CURRENT_EMISSION = temp.emission;
-	CURRENT_LIFETIME = temp.lifetime;
-	CURRENT_WIDTH = temp.width;
-	CURRENT_HEIGHT = temp.height;
-	CURRENT_ROT = temp.dir;
-	CURRENT_FORCE = temp.force;
-	CURRENT_GRAVITY = temp.gravity;
-	CURRENT_SEED = temp.seed;
-	CURRENT_SPREAD = temp.spread;
-	CURRENT_SCALEDIR = temp.scaleDir;
-
-	temp.glow = CURRENT_GLOW;
+	//Don't scale
+	CURRENT_PS.scaleDir = 0;
 
 
 	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
 	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
-	ps->Rebuild(&temp);
+	ps->Rebuild(&CURRENT_PS);
 	//TODO: Replace "CURRENT_" with ParticleSystemData
 }
 
 void TW_CALL RandomizeSeed(void* clientData)
 {
-	CURRENT_SEED = RandInt(0, 1000);
-	temp.seed = CURRENT_SEED;
-	ps->Rebuild(&temp);
+	CURRENT_PS.seed = RandInt(0, 1000);
+	ps->Rebuild(&CURRENT_PS);
 }
 
 void TW_CALL PausePlay(void* clientData)
@@ -746,25 +705,25 @@ void InitializeGUI()
 	TwDefine(" Controls resizable=false");
 	TwDefine(" Controls fontresizable=false");
 
-	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_VTXCOUNT, "label='Max Particles:' min=1 max=2000 ");
+	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_PS.maxparticles, "label='Max Particles:' min=1 max=2000 ");
 	TwAddVarRO(BarGUI, "Unused", TW_TYPE_INT16, &CURRENT_ACTIVE, "label='Active Particles:' ");
-	TwAddVarRW(BarGUI, "Emission Delay:", TW_TYPE_FLOAT, &CURRENT_EMISSION, "min=0.0f max=10.0f step=0.01f");
-	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_LIFETIME, "min=0.0f max=50.0f step=0.01f");
-	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_REPEAT, "");
-	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_WIDTH, "min=0.05f max=20.0f step=0.01f");
-	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_HEIGHT, "min=0.05f max=10.0f step=0.01f");
-	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_ROT.x, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_ROT.y, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_ROT.z, "min=-1.0f max=1.0f step=0.05f");
-	TwAddVarRW(BarGUI, "Force:", TW_TYPE_FLOAT, &CURRENT_FORCE, "min=-10.0f max=10.0f step=0.01");
-	TwAddVarRW(BarGUI, "Drag:", TW_TYPE_FLOAT, &CURRENT_DRAG, "min=0.0f max=10.0f step=0.01");
-	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Emission Delay:", TW_TYPE_FLOAT, &CURRENT_PS.emission, "min=0.0f max=10.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Lifetime:", TW_TYPE_FLOAT, &CURRENT_PS.lifetime, "min=0.0f max=50.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Repeat:", TW_TYPE_BOOLCPP, &CURRENT_PS.continuous, "");
+	TwAddVarRW(BarGUI, "Scale X:", TW_TYPE_FLOAT, &CURRENT_PS.width, "min=0.05f max=20.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Scale Y:", TW_TYPE_FLOAT, &CURRENT_PS.height, "min=0.05f max=10.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Direction X:", TW_TYPE_FLOAT, &CURRENT_PS.dir.x, "min=-1.0f max=1.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Direction Y:", TW_TYPE_FLOAT, &CURRENT_PS.dir.y, "min=-1.0f max=1.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Direction Z:", TW_TYPE_FLOAT, &CURRENT_PS.dir.z, "min=-1.0f max=1.0f step=0.05f");
+	TwAddVarRW(BarGUI, "Force:", TW_TYPE_FLOAT, &CURRENT_PS.force, "min=-10.0f max=10.0f step=0.01");
+	TwAddVarRW(BarGUI, "Drag:", TW_TYPE_FLOAT, &CURRENT_PS.drag, "min=0.0f max=10.0f step=0.01");
+	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_PS.gravity, "min=-100.0f max=100.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");	
-	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");
+	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_PS.seed, "min=0 max=1000");
 	TwAddButton(BarGUI, "Randomize Seed", RandomizeSeed, NULL, " label='Randomize Seed' ");
-	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_SPREAD, "min=0.0f max=1.0f step=0.01f");
-	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_GLOW, "");
-	TwAddVarRW(BarGUI, "Scale Dir:", TW_TYPE_INT32, &CURRENT_SCALEDIR, "min=-1 max=1");
+	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_PS.spread, "min=0.0f max=1.0f step=0.01f");
+	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_PS.glow, "");
+	TwAddVarRW(BarGUI, "Scale Dir:", TW_TYPE_INT32, &CURRENT_PS.scaleDir, "min=-1 max=1");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 	
@@ -787,7 +746,7 @@ void CreateObjects()
 	//Lists all files inside of Data folder with the .png extension in a std::vector
 	texturenames = ListFiles("Data/Textures/*", ".png");
 
-	for (int i = 0; i < texturenames.size (); i++)
+	for (unsigned int i = 0; i < texturenames.size (); i++)
 	{
 		//Temporary variables for this iteration
 		unsigned int temp_width, temp_height;
@@ -819,35 +778,24 @@ void CreateObjects()
 	unsigned int x, y;
 	PNGSize(keys_tex.texturename, x, y);
 
-	temp.width = 0.20000f;
-	temp.height = 0.200000f;
-	temp.lifetime = 1.0f;
-	temp.maxparticles = 100;
-	temp.emission = 0.1f;
-	temp.force = 5.0f;
-	temp.drag = 0.0f;
-	temp.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
-	temp.seed = 0;
-	temp.continuous = true;
-	temp.omni = false;
-	temp.spread = 0.0f;
-	temp.glow = false;
-	temp.scaleDir = 0;
+	//Standard Particle System
+	CURRENT_PS.width = 0.20000f;
+	CURRENT_PS.height = 0.200000f;
+	CURRENT_PS.lifetime = 1.0f;
+	CURRENT_PS.maxparticles = 100;
+	CURRENT_PS.emission = 0.1f;
+	CURRENT_PS.force = 5.0f;
+	CURRENT_PS.drag = 0.0f;
+	CURRENT_PS.gravity = 1.0f; //1.0f = earth grav, 0.5f = half earth grav
+	CURRENT_PS.seed = 0;
+	CURRENT_PS.continuous = true;
+	CURRENT_PS.omni = false;
+	CURRENT_PS.spread = 0.0f;
+	CURRENT_PS.glow = false;
+	CURRENT_PS.scaleDir = 0;
 
-	CURRENT_WIDTH = temp.width;
-	CURRENT_HEIGHT = temp.height;
-	CURRENT_FORCE = temp.force;
-	CURRENT_DRAG = temp.drag;
-	CURRENT_GRAVITY = temp.gravity;
-	CURRENT_VTXCOUNT = temp.maxparticles;
-	CURRENT_VTXCOUNT_DIFF = temp.maxparticles;
-	CURRENT_EMISSION = temp.emission;
-	CURRENT_EMISSION_DIFF = temp.emission;
-	CURRENT_LIFETIME = temp.lifetime;
-	CURRENT_SEED = temp.seed;
-	CURRENT_SPREAD = temp.spread;
-	CURRENT_GLOW = temp.glow;
-	CURRENT_SCALEDIR = temp.scaleDir;
+	CURRENT_VTXCOUNT_DIFF = CURRENT_PS.maxparticles;
+	CURRENT_EMISSION_DIFF = CURRENT_PS.emission;
 
 	arrow	= new Object("Data/OBJ/arrow.obj", &wire_tex, glm::vec3 (0.0f, 0.0f, 0.0f), program, false);
 	sphere	= new Object("Data/OBJ/sphere.obj", &wire_tex, glm::vec3(0.0f, 0.0f, 0.0f), program, false);
@@ -855,7 +803,7 @@ void CreateObjects()
 
 	ui_particle = new Object("Data/OBJ/particle.obj", &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), program, true);
 	ui_keys		= new Object("Data/OBJ/particle.obj", &keys_tex, glm::vec3(0, 0, 0), program, true);
-	ps			= new ParticleSystem(&temp,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
+	ps			= new ParticleSystem(&CURRENT_PS,	  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
 	ui_particle->Translate (glm::vec3 (5.7f, -0.8f, 0.0f));
@@ -864,10 +812,10 @@ void CreateObjects()
 	ui_keys->Translate(glm::vec3(-3.3f, 0.9f, 0.0f));
 
 	//Initial rot (direction) values
-	CURRENT_ROT = glm::vec3(1.0f, 0.0f, 0.0f);
+	CURRENT_PS.dir = glm::vec3(1.0f, 0.0f, 0.0f);
 
 	//Rotate arrow once with direction
-	arrow->Rotate(CURRENT_ROT);
+	arrow->Rotate(CURRENT_PS.dir);
 }
 
 void SetViewport(HWND hwnd)
@@ -878,45 +826,32 @@ void SetViewport(HWND hwnd)
 
 void Update (double deltaTime)
 {
-	if (CURRENT_VTXCOUNT != CURRENT_VTXCOUNT_DIFF)
+	if (CURRENT_PS.maxparticles != CURRENT_VTXCOUNT_DIFF)
 	{
 		Rebuild((void*)0);
 	}
 
-	if (CURRENT_EMISSION != CURRENT_EMISSION_DIFF)
+	if (CURRENT_PS.emission != CURRENT_EMISSION_DIFF)
 	{
 		Rebuild((void*)0);
 	}
 
-	CURRENT_VTXCOUNT_DIFF = CURRENT_VTXCOUNT;
-	CURRENT_EMISSION_DIFF = CURRENT_EMISSION;
+	CURRENT_VTXCOUNT_DIFF = CURRENT_PS.maxparticles;
+	CURRENT_EMISSION_DIFF = CURRENT_PS.emission;
 
-	CURRENT_ROT = glm::clamp(CURRENT_ROT, -1.0f, 1.0f);
+	CURRENT_PS.dir = glm::clamp(CURRENT_PS.dir, -1.0f, 1.0f);
 
-	arrow->Rotate(glm::vec3(CURRENT_ROT.x, -CURRENT_ROT.y, CURRENT_ROT.z));
+	arrow->Rotate(glm::vec3(CURRENT_PS.dir.x, -CURRENT_PS.dir.y, CURRENT_PS.dir.z));
 	
 	sphere		->Update();
 	arrow		->Update();	//updates model matrix (T * R * S compute)
-	ui_particle	->Update ();
+	ui_particle	->Update();
 	ui_keys		->Update();
 
 	//Update temp with new values
-	temp.dir		= CURRENT_ROT;
-	temp.width		= CURRENT_WIDTH;
-	temp.height		= CURRENT_HEIGHT;
-	temp.force		= CURRENT_FORCE;
-	temp.drag		= CURRENT_DRAG;
-	temp.gravity	= CURRENT_GRAVITY;
-	temp.emission	= CURRENT_EMISSION;
-	temp.lifetime	= CURRENT_LIFETIME;
-	temp.continuous = CURRENT_REPEAT;
-	temp.seed		= CURRENT_SEED;
-	temp.omni		= !arrow->IsActive();
-	temp.spread		= CURRENT_SPREAD;
-	temp.glow		= CURRENT_GLOW;
-	temp.scaleDir	= CURRENT_SCALEDIR;
+	CURRENT_PS.omni = !arrow->IsActive();
 
-	ps->Update(deltaTime, &temp, camera.GetPos());
+	ps->Update(deltaTime, &CURRENT_PS, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();
 
 	glm::vec3 pos = camera.GetPos();
@@ -985,8 +920,8 @@ void Render()
 	VP = Projection * View;
 	glUniformMatrix4fv(ps_MatrixID, 1, GL_FALSE, &VP[0][0]);
 	glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
-	glUniform2fv(ps_SizeID, 1, glm::value_ptr(glm::vec2(CURRENT_WIDTH, CURRENT_HEIGHT)));
-	glUniform1i(ps_GlowID, CURRENT_GLOW);
+	glUniform2fv(ps_SizeID, 1, glm::value_ptr(glm::vec2(CURRENT_PS.width, CURRENT_PS.height)));
+	glUniform1i(ps_GlowID, CURRENT_PS.glow);
 	ps->Render();
 
 	//Enable this and comment out ps->Render() to render lightning between points.
@@ -1239,10 +1174,10 @@ int main(void)
 			glfwGetCursorPos(window, &mX, &mY);
 			mX = mX - width / 2;
 			
-			float angleX = 0.0f;
+			double angleX = 0.0f;
 			angleX -= mX;
 			
-			cam = glm::rotate(cam, angleX * (float)deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+			cam = glm::rotate(cam, (float)angleX * (float)deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
 
 			glfwSetCursorPos(window, width / 2, height / 2);
 
