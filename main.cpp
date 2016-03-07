@@ -68,7 +68,6 @@ glm::mat4 Ortho		 = glm::mat4(1.0f);
 glm::mat4 MVP		 = glm::mat4(1.0f);		//model * view * projection
 
 //Player variables
-int			 CURRENT_FPS = 0;
 unsigned int CURRENT_TEXTURE = 0;
 int			 CURRENT_ACTIVE = 0;
 std::string  CURRENT_LABEL;
@@ -96,11 +95,6 @@ TwBar* BarControls;
 
 //Input variables
 double mX, mY;
-
-void SetFPS(int fps)
-{
-	CURRENT_FPS = fps;
-}
 
 int CheckTexture(const char* texturename)
 {
@@ -627,8 +621,8 @@ void TW_CALL Randomize(void *clientData)
 	//Randomize spread
 	CURRENT_PS.spread = RandFloat(0.0f, 1.0f);
 	
-	//Randomize glow
-	CURRENT_PS.glow = RandInt(0, 1);
+	//Glow false
+	CURRENT_PS.glow = 0;
 
 	//Don't scale
 	CURRENT_PS.scaleDir = 0;
