@@ -471,62 +471,6 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->glow), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->scaleDir), sizeof(int));
 	file.close();
-
-
-	//Write screenshot
-/*	int x1, y1, x2, y2, w, h;
-
-	// get screen dimensions
-	x1 = GetSystemMetrics(SM_XVIRTUALSCREEN);
-	y1 = GetSystemMetrics(SM_YVIRTUALSCREEN);
-	x2 = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-	y2 = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-	w = x2 - x1;
-	h = y2 - y1;
-*/
-
-	//TODO: write from glReadPixels() to const std::vector<char>& lpBits 
-	// Create a new file for writing
-	/*std::ofstream pFile(szPathName, std::ios_base::binary);
-	if (!pFile.is_open()) 
-	{
-		return false;
-	}
-
-	BITMAPINFOHEADER bmih;
-	bmih.biSize = sizeof(BITMAPINFOHEADER);
-	bmih.biWidth = w;
-	bmih.biHeight = h;
-	bmih.biPlanes = 1;
-	bmih.biBitCount = 24;
-	bmih.biCompression = BI_RGB;
-	bmih.biSizeImage = w * h * 3;
-
-	BITMAPFILEHEADER bmfh;
-	int nBitsOffset = sizeof(BITMAPFILEHEADER) + bmih.biSize;
-	LONG lImageSize = bmih.biSizeImage;
-	LONG lFileSize = nBitsOffset + lImageSize;
-	bmfh.bfType = 'B' + ('M' << 8);
-	bmfh.bfOffBits = nBitsOffset;
-	bmfh.bfSize = lFileSize;
-	bmfh.bfReserved1 = bmfh.bfReserved2 = 0;
-
-	// Write the bitmap file header
-	pFile.write((const char*)&bmfh, sizeof(BITMAPFILEHEADER));
-	UINT nWrittenFileHeaderSize = pFile.tellp();
-
-	// And then the bitmap info header
-	pFile.write((const char*)&bmih, sizeof(BITMAPINFOHEADER));
-	UINT nWrittenInfoHeaderSize = pFile.tellp();
-
-	// Finally, write the image data itself
-	//-- the data represents our drawing
-	pFile.write(&lpBits[0], lpBits.size());
-	UINT nWrittenDIBDataSize = pFile.tellp();
-	pFile.close();
-
-	return true;*/
-
 }
 
 void TW_CALL Import(void *clientData)
@@ -770,6 +714,13 @@ void TW_CALL Randomize(void *clientData)
 	//TODO: Replace "CURRENT_" with ParticleSystemData
 }
 
+void TW_CALL RandomizeSeed(void* clientData)
+{
+	CURRENT_SEED = RandInt(0, 1000);
+	temp.seed = CURRENT_SEED;
+	ps->Rebuild(&temp);
+}
+
 void TW_CALL PausePlay(void* clientData)
 {
 	if (ps->IsPlaying() == true)
@@ -824,6 +775,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Gravity:", TW_TYPE_FLOAT, &CURRENT_GRAVITY, "min=-100.0f max=100.0f step=0.05f");
 	TwAddVarRW(BarGUI, "Show Direction", TW_TYPE_BOOLCPP, &RENDER_DIR, "");	
 	TwAddVarRW(BarGUI, "Seed Number:", TW_TYPE_INT16, &CURRENT_SEED, "min=0 max=1000");
+	TwAddButton(BarGUI, "Randomize Seed", RandomizeSeed, NULL, " label='Randomize Seed' ");
 	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_SPREAD, "min=0.0f max=1.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_GLOW, "");
 	TwAddVarRW(BarGUI, "Scale Dir:", TW_TYPE_INT32, &CURRENT_SCALEDIR, "min=-1 max=1");
@@ -920,15 +872,13 @@ void CreateObjects()
 	ps			= new ParticleSystem(&temp,			  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.7f, -0.6f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.7f, -0.8f, 0.0f));
 
 	ui_keys->Rescale(glm::vec3(0.258f, 0.466f, 1.0f));
 	ui_keys->Translate(glm::vec3(-3.3f, 0.9f, 0.0f));
 
 	//Initial rot (direction) values
 	CURRENT_ROT = glm::vec3(1.0f, 0.0f, 0.0f);
-	//TODO: Camera rotation around middle
-	//TODO: Randomize seed
 
 	//Rotate arrow once with direction
 	arrow->Rotate(CURRENT_ROT);
@@ -1302,7 +1252,6 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_click);
 	glfwSetCursorPosCallback(window, mouse_pos);
 	glfwSetKeyCallback(window, key_callback);
-	//TODO: Deal with input chars (includes 0-9?)
 	glfwSetCharCallback(window, (GLFWcharfun)TwEventCharGLFW);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
