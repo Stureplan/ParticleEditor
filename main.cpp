@@ -42,11 +42,12 @@ using namespace glm;
 //Window
 int width = 1280;
 int height = 720;
-GLFWwindow* preview;
 GLFWwindow* window;
 
 //Window 2
 int view = 1;
+GLFWwindow* preview;
+
 
 //Pointer variables
 GLuint program = 0;
@@ -69,19 +70,17 @@ glm::mat4 Ortho		 = glm::mat4(1.0f);
 glm::mat4 MVP		 = glm::mat4(1.0f);		//model * view * projection
 
 //Player variables
-int			CURRENT_FPS = 0;
-unsigned int			CURRENT_TEXTURE = 0;
-int			CURRENT_ACTIVE = 0;
-std::string CURRENT_LABEL;
-bool		RENDER_DIR = true;
+int			 CURRENT_FPS = 0;
+unsigned int CURRENT_TEXTURE = 0;
+int			 CURRENT_ACTIVE = 0;
+std::string  CURRENT_LABEL;
+bool		 RENDER_DIR = true;
 
 //Particle System Data
 ParticleSystemData CURRENT_PS;
 
 int			CURRENT_VTXCOUNT_DIFF = 0;
 float		CURRENT_EMISSION_DIFF = 0.0f;
-
-double dt = 0.0f;
 
 std::vector<std::string> texturenames;
 std::vector<TextureData> texturedata;
@@ -98,16 +97,7 @@ TwBar* BarGUI;
 TwBar* BarControls;
 
 //Input variables
-POINT* p;
 double mX, mY;
-float mousespeed = 0.005f;
-float horizontalAngle = 3.14f;
-float verticalAngle = 0.0f;
-float MoveSpeed = 5.0f;
-
-bool change = false;
-
-int mbab = 0;
 
 void SetFPS(int fps)
 {
@@ -175,7 +165,6 @@ void CreateShaders()
 
 void StopPreview()
 {
-	//change = true;
 	view = 0;
 }
 
@@ -657,7 +646,6 @@ void TW_CALL Randomize(void *clientData)
 	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
 	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
 	ps->Rebuild(&CURRENT_PS);
-	//TODO: Replace "CURRENT_" with ParticleSystemData
 }
 
 void TW_CALL RandomizeSeed(void* clientData)
@@ -816,12 +804,6 @@ void CreateObjects()
 
 	//Rotate arrow once with direction
 	arrow->Rotate(CURRENT_PS.dir);
-}
-
-void SetViewport(HWND hwnd)
-{
-	//windowReference = hwnd;
-	glViewport(0, 0, width, height);
 }
 
 void Update (double deltaTime)
@@ -1140,8 +1122,6 @@ int main(void)
 	double timer = 0;
 	int frames = 0;
 	int FPS = 0;
-
-	int mb = 0;
 
 	while (!glfwGetKey(window, GLFW_KEY_ESCAPE))
 	{
