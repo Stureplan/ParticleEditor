@@ -850,14 +850,6 @@ void Update (double deltaTime)
 
 	ps->Update(deltaTime, &CURRENT_PS, camera.GetPos());
 	CURRENT_ACTIVE = ps->GetActiveParticles();
-
-	glm::vec3 pos = camera.GetPos();
-	glm::vec3 dir = pos;
-	dir.z = dir.z + 1.0f;
-	dir.y = dir.y - 0.5f;
-
-	camera.SetPos (pos);
-	camera.SetDir (dir);
 }
 
 
@@ -1095,11 +1087,41 @@ void mouse_click(GLFWwindow* window, int button, int action, int mods)
 
 }
 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	
+	//Up is +1, down is -1, nothing is 0
+	double a = yoffset;
+
+	glm::vec3 pos = camera.GetPos();
+	glm::mat4 view = camera.GetView();
+
+	//Zoom in
+	if (yoffset > 0)
+	{
+		if (view[3].z < -1.0f)
+		{
+			view[3].z += yoffset;
+		}
+	}
+
+	//Zoom out
+	else if (yoffset < 0)
+	{
+		if (view[3].z > -11.0f)
+		{
+			view[3].z += yoffset;
+		}
+	}
+
+	camera.SetView(view);
+}
+
 int main(void)
 {
 	glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL 
 	glfwInit();
@@ -1132,7 +1154,9 @@ int main(void)
 	glfwSetCursorPosCallback(window, mouse_pos);
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCharCallback(window, (GLFWcharfun)TwEventCharGLFW);
+	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
 
 	double deltaTime = 0;
 	double lastTime = 0;
@@ -1167,14 +1191,11 @@ int main(void)
 			//relative to upper-left corner (0, 0)
 			glfwGetCursorPos(window, &mX, &mY);
 			mX = mX - width / 2;
-			
 			double angleX = 0.0f;
 			angleX -= mX;
 			
 			cam = glm::rotate(cam, (float)angleX * (float)deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
-
 			glfwSetCursorPos(window, width / 2, height / 2);
-
 			camera.SetView(cam);
 		}
 

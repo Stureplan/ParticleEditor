@@ -26,6 +26,7 @@ void Camera::Initialize(glm::vec3 pos, glm::vec3 at, int width, int height)
 			);
 
 	m_position = pos;
+	m_direction = at;
 }
 
 void Camera::UpdateView()
@@ -33,7 +34,7 @@ void Camera::UpdateView()
 	View = glm::lookAt
 		(
 			m_position,
-			m_direction,
+			glm::vec3(0, 0, 0),
 			m_up
 			);
 }
