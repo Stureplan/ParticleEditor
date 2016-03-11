@@ -590,7 +590,6 @@ void TW_CALL Rebuild(void *clientData)
 void TW_CALL Randomize(void *clientData)
 {
 	//Randomize emission delay
-	CURRENT_PS.emission = RandFloat(0.0f, 0.2f);
 	int explosion = RandInt(0, 1);
 	if (explosion == 1)
 	{
@@ -601,6 +600,8 @@ void TW_CALL Randomize(void *clientData)
 	}
 	else
 	{
+		CURRENT_PS.emission = RandFloat(0.0f, 0.5f);
+
 		//Randomize maxparticles
 		CURRENT_PS.maxparticles = RandInt(1, 250);
 	}
@@ -642,7 +643,18 @@ void TW_CALL Randomize(void *clientData)
 	//Randomize fade
 	CURRENT_PS.fade = RandInt(-1, 1);
 
-	CURRENT_PS.color = glm::vec3(1.0f, 1.0f, 1.0f);
+	//Randomize color: 50% chance to colorize, otherwise use texture color
+	int colorize = RandInt(0, 1);
+	if (colorize == 1)
+	{
+		CURRENT_PS.color.x = RandFloat(0, 1);
+		CURRENT_PS.color.y = RandFloat(0, 1);
+		CURRENT_PS.color.z = RandFloat(0, 1);
+	}
+	else
+	{
+		CURRENT_PS.color = glm::vec3(1.0f, 1.0f, 1.0f);
+	}
 
 
 	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
