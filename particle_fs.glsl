@@ -6,6 +6,7 @@ in float life_frag;
 uniform sampler2D tex;
 uniform int glow;
 uniform int fade;
+uniform vec3 color;
 
 out vec4 fragment_color;
 void main () 
@@ -27,4 +28,6 @@ void main ()
 	{
 		fragment_color.w *= life_frag;
 	}
+
+	fragment_color.xyz *= color;
 }

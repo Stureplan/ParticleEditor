@@ -34,6 +34,7 @@ struct ParticleSystemData
 	int glow;
 	int scaleDir;
 	int fade;
+	glm::vec3 color;
 };
 
 //TODO: Separate ParticleSystemData from PlayerData

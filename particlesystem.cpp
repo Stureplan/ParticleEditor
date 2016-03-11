@@ -119,6 +119,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	this->m_vertices.resize(m_particleinfo->maxparticles);
 	this->m_particles.resize(m_particleinfo->maxparticles);
 	this->m_directions.resize(m_particleinfo->maxparticles);
+	this->m_lifetime.resize(m_particleinfo->maxparticles);
 
 	//Initiate random gen
 	std::random_device rd;

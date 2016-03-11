@@ -58,6 +58,7 @@ GLuint ps_SizeID;
 GLuint ps_GlowID;
 GLuint ps_ScaleDIR;
 GLuint ps_FadeID;
+GLuint ps_ColorID;
 
 GLuint ps_lprogram = 0;
 GLuint ps_lMatrixID;
@@ -94,6 +95,7 @@ ParticleSystem* ps;
 Camera camera;
 TwBar* BarGUI;
 TwBar* BarControls;
+TwBar* BarTexture;
 
 //Input variables
 double mX, mY;
@@ -133,7 +135,7 @@ void SetLabel()
 
 	std::string tw;
 
-	tw = " Settings/Name: ";
+	tw = " Texture/Name: ";
 	tw.append (CURRENT_LABEL);
 
 	TwDefine (tw.c_str());
@@ -153,6 +155,7 @@ void CreateShaders()
 	ps_GlowID = glGetUniformLocation(ps_program, "glow");
 	ps_ScaleDIR = glGetUniformLocation(ps_program, "scaledir");
 	ps_FadeID = glGetUniformLocation(ps_program, "fade");
+	ps_ColorID = glGetUniformLocation(ps_program, "color");
 	ps_lMatrixID = glGetUniformLocation(ps_lprogram, "MVP");
 
 	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
@@ -259,6 +262,7 @@ void RetexturePreview(std::string PSysName)
 		glUniform1i(ps_GlowID, exPS.glow);
 		glUniform1i(ps_ScaleDIR, exPS.scaleDir);
 		glUniform1i(ps_FadeID, exPS.fade);
+		glUniform3fv(ps_ColorID, 1, glm::value_ptr(exPS.color));
 		ps2->Render();
 		
 			
@@ -422,6 +426,7 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->glow), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->scaleDir), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->fade), sizeof(int));
+	file.write(reinterpret_cast<char*>(&ps_temp->color), sizeof(glm::vec3));
 	file.close();
 }
 
@@ -637,6 +642,8 @@ void TW_CALL Randomize(void *clientData)
 	//Randomize fade
 	CURRENT_PS.fade = RandInt(-1, 1);
 
+	CURRENT_PS.color = glm::vec3(1.0f, 1.0f, 1.0f);
+
 
 	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
 	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
@@ -669,12 +676,13 @@ void InitializeGUI()
 	TwWindowSize(1280, 720);
 	BarGUI		= TwNewBar("Settings");
 	BarControls = TwNewBar("Controls");
+	BarTexture	= TwNewBar("Texture");
 	TwDefine(" GLOBAL fontsize=3");
 	TwDefine(" GLOBAL buttonalign=right ");
 
 	TwDefine(" Settings position='1050 0'");
 	TwDefine(" Settings color='0 0 0'");
-	TwDefine(" Settings size='250 500'");
+	TwDefine(" Settings size='250 470'");
 	TwDefine(" Settings refresh=0.1");
 	TwDefine(" Settings movable=false");
 	TwDefine(" Settings resizable=false");
@@ -687,6 +695,14 @@ void InitializeGUI()
 	TwDefine(" Controls movable=false");
 	TwDefine(" Controls resizable=false");
 	TwDefine(" Controls fontresizable=false");
+
+	TwDefine(" Texture position='1050 570'");
+	TwDefine(" Texture color='0 0 0'");
+	TwDefine(" Texture size='250 150'");
+	TwDefine(" Texture refresh=0.1");
+	TwDefine(" Texture movable=false");
+	TwDefine(" Texture resizable=false");
+	TwDefine(" Texture fontresizable=false");
 
 	TwAddVarRW(BarGUI, "Max Particles:", TW_TYPE_INT16, &CURRENT_PS.maxparticles, "label='Max Particles:' min=1 max=2000 ");
 	TwAddVarRO(BarGUI, "Unused", TW_TYPE_INT16, &CURRENT_ACTIVE, "label='Active Particles:' ");
@@ -708,9 +724,7 @@ void InitializeGUI()
 	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_PS.glow, "");
 	TwAddVarRW(BarGUI, "Scale in/out:", TW_TYPE_INT32, &CURRENT_PS.scaleDir, "min=-1 max=1");
 	TwAddVarRW(BarGUI, "Fade in/out:", TW_TYPE_INT32, &CURRENT_PS.fade, "min=-1 max=1");
-	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
-	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
-	
+	TwAddVarRW(BarGUI, "Color:", TW_TYPE_COLOR3F, &CURRENT_PS.color, "colormode=rgb");
 	
 	TwAddButton(BarControls, "Export", Export, NULL, " label='Export Particle System' ");
 	TwAddButton(BarControls, "Import", Import, NULL, " label='Import Particle System' ");
@@ -718,7 +732,10 @@ void InitializeGUI()
 	TwAddButton(BarControls, "Randomize", Randomize, NULL, " label='Randomize Particle System' key=e");
 	TwAddButton(BarControls, "Pause/Play", PausePlay, NULL, " label='Pause/Play' key=space");
 
-	
+	TwAddVarRO(BarTexture, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
+	TwAddButton(BarTexture, "Name:", NULL, NULL, CURRENT_LABEL.c_str());
+
+
 	SetLabel ();
 }
 
@@ -778,6 +795,7 @@ void CreateObjects()
 	CURRENT_PS.glow = false;
 	CURRENT_PS.scaleDir = 0;
 	CURRENT_PS.fade = 1;
+	CURRENT_PS.color = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	CURRENT_VTXCOUNT_DIFF = CURRENT_PS.maxparticles;
 	CURRENT_EMISSION_DIFF = CURRENT_PS.emission;
@@ -791,7 +809,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&CURRENT_PS,	  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.7f, -1.1f, 0.0f));
+	ui_particle->Translate (glm::vec3 (6.5f, -4.3f, 0.0f));
 
 	ui_keys->Rescale(glm::vec3(0.258f, 0.466f, 1.0f));
 	ui_keys->Translate(glm::vec3(-3.3f, 0.9f, 0.0f));
@@ -903,6 +921,7 @@ void Render()
 	glUniform1i(ps_GlowID, CURRENT_PS.glow);
 	glUniform1i(ps_ScaleDIR, CURRENT_PS.scaleDir);
 	glUniform1i(ps_FadeID, CURRENT_PS.fade);
+	glUniform3fv(ps_ColorID, 1, glm::value_ptr(CURRENT_PS.color));
 	ps->Render();
 
 	//Enable this and comment out ps->Render() to render lightning between points.

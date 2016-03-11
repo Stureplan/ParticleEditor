@@ -34,8 +34,7 @@ void main()
 
 	if (scaledir == 0)
 	{
-		//up = up * size.y;
-		//right = right * size.x;
+		//Do nothing, leave scale as is
 	}
 
 	if (scaledir == 1)
