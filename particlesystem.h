@@ -44,8 +44,10 @@ private:
 	GLuint texture;
 	GLuint vertexbuffer;
 	GLuint dirbuffer;
+	GLuint lifebuffer;
 	GLuint vtxpos;
 	GLuint vtxdir;
+	GLuint vtxlife;
 	GLuint m_shader;
 	GLuint m_lshader;
 
@@ -55,6 +57,7 @@ private:
 	std::vector<glm::vec3> m_vertices;
 	std::vector<Particle> m_particles;
 	std::vector<glm::vec3> m_directions;
+	std::vector<float> m_lifetime;
 
 	glm::vec3 m_position;
 	glm::vec3 m_direction;

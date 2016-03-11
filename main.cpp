@@ -56,6 +56,8 @@ GLuint ps_MatrixID;
 GLuint ps_CamID;
 GLuint ps_SizeID;
 GLuint ps_GlowID;
+GLuint ps_ScaleDIR;
+GLuint ps_FadeID;
 
 GLuint ps_lprogram = 0;
 GLuint ps_lMatrixID;
@@ -149,6 +151,8 @@ void CreateShaders()
 	ps_CamID = glGetUniformLocation(ps_program, "cam");
 	ps_SizeID = glGetUniformLocation(ps_program, "size");
 	ps_GlowID = glGetUniformLocation(ps_program, "glow");
+	ps_ScaleDIR = glGetUniformLocation(ps_program, "scaledir");
+	ps_FadeID = glGetUniformLocation(ps_program, "fade");
 	ps_lMatrixID = glGetUniformLocation(ps_lprogram, "MVP");
 
 	glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
@@ -253,6 +257,8 @@ void RetexturePreview(std::string PSysName)
 		glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
 		glUniform2fv(ps_SizeID, 1, glm::value_ptr(glm::vec2(exPS.width, exPS.height)));
 		glUniform1i(ps_GlowID, exPS.glow);
+		glUniform1i(ps_ScaleDIR, exPS.scaleDir);
+		glUniform1i(ps_FadeID, exPS.fade);
 		ps2->Render();
 		
 			
@@ -415,6 +421,7 @@ void TW_CALL Export(void *clientData)
 	file.write(reinterpret_cast<char*>(&ps_temp->spread), sizeof(float));
 	file.write(reinterpret_cast<char*>(&ps_temp->glow), sizeof(int));
 	file.write(reinterpret_cast<char*>(&ps_temp->scaleDir), sizeof(int));
+	file.write(reinterpret_cast<char*>(&ps_temp->fade), sizeof(int));
 	file.close();
 }
 
@@ -627,6 +634,9 @@ void TW_CALL Randomize(void *clientData)
 	//Don't scale
 	CURRENT_PS.scaleDir = 0;
 
+	//Randomize fade
+	CURRENT_PS.fade = RandInt(-1, 1);
+
 
 	ps->Retexture(&texturedata[CURRENT_TEXTURE]);
 	ui_particle->Rebuild(&texturedata[CURRENT_TEXTURE]);
@@ -696,7 +706,8 @@ void InitializeGUI()
 	TwAddButton(BarGUI, "Randomize Seed", RandomizeSeed, NULL, " label='Randomize Seed' ");
 	TwAddVarRW(BarGUI, "Spread:", TW_TYPE_FLOAT, &CURRENT_PS.spread, "min=0.0f max=1.0f step=0.01f");
 	TwAddVarRW(BarGUI, "Use Glow:", TW_TYPE_BOOLCPP, &CURRENT_PS.glow, "");
-	TwAddVarRW(BarGUI, "Scale Dir:", TW_TYPE_INT32, &CURRENT_PS.scaleDir, "min=-1 max=1");
+	TwAddVarRW(BarGUI, "Scale in/out:", TW_TYPE_INT32, &CURRENT_PS.scaleDir, "min=-1 max=1");
+	TwAddVarRW(BarGUI, "Fade in/out:", TW_TYPE_INT32, &CURRENT_PS.fade, "min=-1 max=1");
 	TwAddVarRO(BarGUI, "Texture:", TW_TYPE_INT16, &CURRENT_TEXTURE, "");
 	TwAddButton(BarGUI, "Name:", NULL, NULL, CURRENT_LABEL.c_str ());
 	
@@ -766,6 +777,7 @@ void CreateObjects()
 	CURRENT_PS.spread = 0.0f;
 	CURRENT_PS.glow = false;
 	CURRENT_PS.scaleDir = 0;
+	CURRENT_PS.fade = 1;
 
 	CURRENT_VTXCOUNT_DIFF = CURRENT_PS.maxparticles;
 	CURRENT_EMISSION_DIFF = CURRENT_PS.emission;
@@ -779,7 +791,7 @@ void CreateObjects()
 	ps			= new ParticleSystem(&CURRENT_PS,	  &texturedata[CURRENT_TEXTURE], glm::vec3 (0.0f, 0.0f, 0.0f), ps_program, ps_lprogram);
 
 	ui_particle->Rescale (glm::vec3 (0.125f, 0.2f, 1.0f));
-	ui_particle->Translate (glm::vec3 (5.7f, -0.8f, 0.0f));
+	ui_particle->Translate (glm::vec3 (5.7f, -1.1f, 0.0f));
 
 	ui_keys->Rescale(glm::vec3(0.258f, 0.466f, 1.0f));
 	ui_keys->Translate(glm::vec3(-3.3f, 0.9f, 0.0f));
@@ -889,6 +901,8 @@ void Render()
 	glUniform3fv(ps_CamID, 1, glm::value_ptr(camera.GetPos()));
 	glUniform2fv(ps_SizeID, 1, glm::value_ptr(glm::vec2(CURRENT_PS.width, CURRENT_PS.height)));
 	glUniform1i(ps_GlowID, CURRENT_PS.glow);
+	glUniform1i(ps_ScaleDIR, CURRENT_PS.scaleDir);
+	glUniform1i(ps_FadeID, CURRENT_PS.fade);
 	ps->Render();
 
 	//Enable this and comment out ps->Render() to render lightning between points.

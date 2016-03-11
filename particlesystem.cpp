@@ -4,8 +4,15 @@ ParticleSystem::ParticleSystem(){ }
 
 ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* textureinfo, glm::vec3 position, GLuint shader, GLuint lshader)
 {
+	texture = 0;
+
 	vertexbuffer = 0;
+	dirbuffer = 0;
+	lifebuffer = 0;
+
 	vtxpos = 0;
+	vtxdir = 0;
+	vtxlife = 0;
 
 	m_shader = 0;
 	m_lshader = 0;
@@ -24,10 +31,15 @@ ParticleSystem::ParticleSystem(ParticleSystemData* particleinfo, TextureData* te
 ParticleSystem::~ParticleSystem() 
 { 
 	texture = 0;
+
 	vertexbuffer = 0;
 	dirbuffer = 0;
+	lifebuffer = 0;
+
 	vtxpos = 0;
 	vtxdir = 0;
+	vtxlife = 0;
+
 	m_shader = 0;
 	m_lshader = 0;
 
@@ -62,6 +74,7 @@ void ParticleSystem::Initialize()
 
 		m_particles.push_back(p);
 		m_directions.push_back(p.rdir);
+		m_lifetime.push_back(p.ctime);
 	}
 
 	m_playing = true;
@@ -92,6 +105,11 @@ void ParticleSystem::Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, dirbuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_directions.size() * sizeof(glm::vec3), &m_directions[0], GL_STATIC_DRAW);
 	vtxdir = glGetAttribLocation(m_shader, "vertex_direction");
+
+	glGenBuffers(1, &lifebuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, lifebuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_lifetime.size() * sizeof(float), &m_lifetime[0], GL_STATIC_DRAW);
+	vtxlife = glGetAttribLocation(m_shader, "vertex_lifetime");
 }
 
 
@@ -127,6 +145,7 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 		m_particles.at(i) = p;
 		m_vertices.at(i) = p.pos;
 		m_directions.at(i) = p.rdir;
+		m_lifetime.at(i) = p.ctime;
 	}
 
 	Model = glm::mat4(1.0f);
@@ -140,6 +159,11 @@ void ParticleSystem::Rebuild (ParticleSystemData* particleinfo)
 	glBindBuffer(GL_ARRAY_BUFFER, dirbuffer);
 	glBufferData(GL_ARRAY_BUFFER, m_directions.size() * sizeof(glm::vec3), &m_directions[0], GL_STATIC_DRAW);
 	vtxdir = glGetAttribLocation(m_shader, "vertex_direction");
+
+	glGenBuffers(1, &lifebuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, lifebuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_lifetime.size() * sizeof(float), &m_lifetime[0], GL_STATIC_DRAW);
+	vtxlife = glGetAttribLocation(m_shader, "vertex_lifetime");
 }
 
 void ParticleSystem::Retexture(TextureData* textureinfo)
@@ -245,6 +269,7 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 
 				p.dist = glm::length(p.pos - campos);
 				m_vertices.at(i) = p.pos;
+				m_lifetime.at(i) = percent;
 			}
  
 			//If current lifetime is reached and particle still alive,
@@ -256,6 +281,7 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 				if (m_particleinfo->continuous == true)
 				{
 					p.ctime = m_particleinfo->lifetime;
+					m_lifetime.at(i) = p.ctime / m_particleinfo->lifetime;
 				}
 				p.pos = m_position;
 				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -275,6 +301,7 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 
 					p.alive = true;
 					p.ctime = m_particleinfo->lifetime;
+					m_lifetime.at(i) = p.ctime / m_particleinfo->lifetime;
 					p.pos = m_position;
 					p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 					p.dist = -1.0f;
@@ -291,6 +318,7 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 
 						p.alive = true;
 						p.ctime = m_particleinfo->lifetime;
+						m_lifetime.at(i) = p.ctime / m_particleinfo->lifetime;
 						p.pos = m_position;
 						p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 						p.dist = -1.0f;
@@ -310,9 +338,10 @@ void ParticleSystem::Update(double deltaTime, ParticleSystemData* part, glm::vec
 				}
 				//TODO: Set pos back to 0 and flag p.intensity to 0
 				p.pos = glm::vec3(0.0f, -1000.0f, 0.0f);
-				p.vel = glm::vec3(0, 0, 0);
+				p.vel = glm::vec3(0.0f, 0.0f, 0.0f);
 
 				m_vertices.at(i) = p.pos;
+				m_lifetime.at(i) = 0.0f;
 			}
 		}
 	}
@@ -342,11 +371,16 @@ void ParticleSystem::Render()
 	glBufferData(GL_ARRAY_BUFFER, m_directions.size() * sizeof(glm::vec3), &m_directions[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(vtxdir, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (const GLvoid*) 0);
 	
+	glEnableVertexAttribArray(vtxlife);
+	glBindBuffer(GL_ARRAY_BUFFER, lifebuffer);
+	glBufferData(GL_ARRAY_BUFFER, m_lifetime.size() * sizeof(float), &m_lifetime[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(vtxlife, 1, GL_FLOAT, GL_FALSE, sizeof(float), (const GLvoid*)0);
 
 	glDrawArrays(GL_POINTS, 0, m_vertices.size());
 
 	glDisableVertexAttribArray(vtxpos);
 	glDisableVertexAttribArray(vtxdir);
+	glDisableVertexAttribArray(vtxlife);
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);

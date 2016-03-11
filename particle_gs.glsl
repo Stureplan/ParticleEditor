@@ -4,12 +4,15 @@ layout (points) in;
 layout (triangle_strip, max_vertices=4) out;
 
 in vec3 dir_geom[];
+in float life_geom[];
 
 uniform mat4 MVP;
 uniform vec3 cam;
 uniform vec2 size;
+uniform int scaledir;
 
 out vec2 uv_frag;
+out float life_frag;
 
 void main()
 {
@@ -22,6 +25,28 @@ void main()
 	up = up * size.y;
 	right = right * size.x;
 
+	if (scaledir == -1)
+	{
+		//Scale down
+		up *= life_geom[0];
+		right *= life_geom[0];
+	}
+
+	if (scaledir == 0)
+	{
+		//up = up * size.y;
+		//right = right * size.x;
+	}
+
+	if (scaledir == 1)
+	{
+		//Scale up
+		up *= 1.0f - life_geom[0];
+		right *= 1.0f - life_geom[0];
+	}
+
+
+	life_frag = life_geom[0];
 	vec3 cPos = pos;
 
 	//VTX 1
