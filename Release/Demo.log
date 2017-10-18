@@ -1,36 +1,44 @@
-﻿Build started 2016-03-11 09:48:41.
-     1>Project "C:\Users\John Cena\Documents\GitHub\OpenGL\Demo.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
-         main.cpp
-     1>c:\users\john cena\documents\github\opengl\events.h(31): warning C4838: conversion from 'DWORD' to 'int' requires a narrowing conversion
-     1>main.cpp(307): warning C4996: '_swprintf': This function or variable may be unsafe. Consider using _swprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         C:\Program Files (x86)\Windows Kits\10\Include\10.0.10150.0\ucrt\corecrt_wstdio.h(1444): note: see declaration of '_swprintf'
-     1>main.cpp(986): warning C4129: '-': unrecognized character escape sequence
-     1>main.cpp(989): warning C4129: '-': unrecognized character escape sequence
-     1>main.cpp(992): warning C4129: '-': unrecognized character escape sequence
-     1>main.cpp(1033): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\John Cena\Documents\GitHub\OpenGL\Release\ParticleEditor.exe" /INCREMENTAL:NO /NOLOGO opengl32.lib SOIL.lib glew32.lib glfw3.lib AntTweakBar.lib Ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\John Cena\Documents\GitHub\OpenGL\Release\ParticleEditor.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /ENTRY:"mainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\John Cena\Documents\GitHub\OpenGL\Release\ParticleEditor.lib" /MACHINE:X86 /SAFESEH Release\camera.obj
-         Release\loader.obj
-         Release\main.obj
-         Release\object.obj
-         Release\particlesystem.obj
-         Release\Win32InputBox.obj
-     1>SOIL.lib(SOIL.obj) : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:ICF' specification
-     1>LINK : warning LNK4098: defaultlib 'MSVCRTD' conflicts with use of other libs; use /NODEFAULTLIB:library
-         Generating code
-         1 of 972 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
-           0 functions were new in current compilation
-           1 functions had inline decision re-evaluated but remain unchanged
-         Finished generating code
-     1>SOIL.lib(image_DXT.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(image_DXT.obj)' or at 'C:\Users\John Cena\Documents\GitHub\OpenGL\Release\vc120.pdb'; linking object as if no debug info
-     1>SOIL.lib(image_helper.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(image_helper.obj)' or at 'C:\Users\John Cena\Documents\GitHub\OpenGL\Release\vc120.pdb'; linking object as if no debug info
-     1>SOIL.lib(SOIL.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(SOIL.obj)' or at 'C:\Users\John Cena\Documents\GitHub\OpenGL\Release\vc120.pdb'; linking object as if no debug info
-     1>SOIL.lib(stb_image_aug.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(stb_image_aug.obj)' or at 'C:\Users\John Cena\Documents\GitHub\OpenGL\Release\vc120.pdb'; linking object as if no debug info
-         Demo.vcxproj -> C:\Users\John Cena\Documents\GitHub\OpenGL\Release\ParticleEditor.exe
-     1>Done Building Project "C:\Users\John Cena\Documents\GitHub\OpenGL\Demo.vcxproj" (Build target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:02.21
+﻿  camera.cpp
+  loader.cpp
+  main.cpp
+c:\users\linus.axelsson3\documents\github\particleeditor\events.h(31): warning C4838: conversion from 'DWORD' to 'int' requires a narrowing conversion
+main.cpp(311): warning C4996: '_swprintf': This function or variable may be unsafe. Consider using _swprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\corecrt_wstdio.h(1444): note: see declaration of '_swprintf'
+main.cpp(1009): warning C4129: '-': unrecognized character escape sequence
+main.cpp(1012): warning C4129: '-': unrecognized character escape sequence
+main.cpp(1015): warning C4129: '-': unrecognized character escape sequence
+main.cpp(1056): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+main.cpp(1116): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+main.cpp(1125): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+  object.cpp
+object.cpp(203): warning C4474: 'printf' : too many arguments passed for format string
+  object.cpp(203): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+object.cpp(205): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+object.cpp(217): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
+object.cpp(226): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
+object.cpp(232): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
+object.cpp(238): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
+object.cpp(245): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(1193): note: see declaration of 'fscanf'
+  particlesystem.cpp
+particlesystem.cpp(217): warning C4018: '<': signed/unsigned mismatch
+particlesystem.cpp(282): warning C4805: '==': unsafe mix of type 'int' and type 'bool' in operation
+  Win32InputBox.cpp
+Win32InputBox.cpp(149): warning C4302: 'type cast': truncation from 'LPCTSTR' to 'WORD'
+SOIL.lib(SOIL.obj) : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:ICF' specification
+LINK : warning LNK4098: defaultlib 'MSVCRTD' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Generating code
+c:\users\linus.axelsson3\documents\github\particleeditor\functions.h(116): warning C4172: returning address of local variable or temporary: wchar
+  All 943 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+SOIL.lib(image_DXT.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(image_DXT.obj)' or at 'C:\Users\linus.axelsson3\Documents\GitHub\ParticleEditor\Release\vc120.pdb'; linking object as if no debug info
+SOIL.lib(image_helper.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(image_helper.obj)' or at 'C:\Users\linus.axelsson3\Documents\GitHub\ParticleEditor\Release\vc120.pdb'; linking object as if no debug info
+SOIL.lib(SOIL.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(SOIL.obj)' or at 'C:\Users\linus.axelsson3\Documents\GitHub\ParticleEditor\Release\vc120.pdb'; linking object as if no debug info
+SOIL.lib(stb_image_aug.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'SOIL.lib(stb_image_aug.obj)' or at 'C:\Users\linus.axelsson3\Documents\GitHub\ParticleEditor\Release\vc120.pdb'; linking object as if no debug info
+  Demo.vcxproj -> C:\Users\linus.axelsson3\Documents\GitHub\ParticleEditor\Release\ParticleEditor.exe
+  Demo.vcxproj -> C:\Users\linus.axelsson3\Documents\GitHub\ParticleEditor\Release\ParticleEditor.pdb (Full PDB)
